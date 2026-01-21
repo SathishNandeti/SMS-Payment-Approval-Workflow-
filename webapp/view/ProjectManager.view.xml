@@ -1,0 +1,364 @@
+<mvc:View
+    controllerName="com.incresol.zpaymentworkflow.controller.ProjectManager"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:table="sap.ui.table"
+    xmlns:m="sap.m"
+    xmlns:f="sap.f"
+    height="100%">
+
+    <f:DynamicPage id="idPaymentDynamicPage">
+        <!-- Dynamic Page Title -->
+        <f:title>
+            <f:DynamicPageTitle>
+                <f:heading>
+                    <m:Title text="Payment Approvals" level="H1"/>
+                </f:heading>
+            </f:DynamicPageTitle>
+        </f:title>
+
+        <!-- Dynamic Page Header -->
+        <f:header>
+            <f:DynamicPageHeader>
+                <f:content>
+                    <!-- Empty header content -->
+                </f:content>
+            </f:DynamicPageHeader>
+        </f:header>
+
+        <!-- Dynamic Page Content -->
+        <f:content>
+            <m:VBox class="sapUiContentPadding">
+                <!-- Table Toolbar -->
+                <m:Toolbar design="Transparent" class="sapUiMediumMarginBottom">
+                    <m:Title text="Payment Items" level="H2"/>
+                    <m:ToolbarSpacer/>
+                </m:Toolbar>
+
+                <!-- Tree Table -->
+                <table:TreeTable
+                    id="idPaymentTreeTable"
+                    rows="{path:'treeData>/treeData', parameters:{arrayNames:['children']}}"
+                    selectionMode="MultiToggle"
+                    selectionBehavior="Row"
+                    rowSelectionChange="onTreeTableRowSelectionChange"
+                    toggleOpenState="onTreeTableToggleOpenState"
+                    enableBusyIndicator="true"
+                    fixedColumnCount="4"
+                    class="sapUiSizeCompact">
+
+                    <!-- Serial Number Column -->
+                    <table:Column label="S.No" width="60px" sortProperty="serialNumber">
+                        <table:template>
+                            <m:Text text="{treeData>serialNumber}" />
+                        </table:template>
+                    </table:Column>
+
+                    <!-- Basic Info -->
+                    <table:Column label="Approval No / Item" width="150px" sortProperty="ApprovalNo">
+                        <table:template>
+                            <m:Text text="{treeData>displayText}" class="{= ${treeData>isHeader} ? 'sapThemeHighlight-asTextColor' : ''}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Document Number" width="120px" sortProperty="DocNum">
+                        <table:template>
+                            <m:Text text="{treeData>DocNum}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Item Number" width="80px" sortProperty="ItemNum">
+                        <table:template>
+                            <m:Text text="{treeData>ItemNum}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Document Date" width="120px" sortProperty="DocDate">
+                        <table:template>
+                            <m:Text text="{path:'treeData>DocDate', type:'sap.ui.model.odata.type.DateTime'}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Posting Date" width="120px" sortProperty="PostingDt">
+                        <table:template>
+                            <m:Text text="{path:'treeData>PostingDt', type:'sap.ui.model.odata.type.DateTime'}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Vendor Code" width="120px" sortProperty="VendorNumber">
+                        <table:template>
+                            <m:Text text="{treeData>VendorNumber}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Vendor Name" width="200px" sortProperty="VendorName">
+                        <table:template>
+                            <m:Text text="{treeData>VendorName}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Reference Doc" width="120px" sortProperty="ReferenceDoc">
+                        <table:template>
+                            <m:Text text="{treeData>ReferenceDoc}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Purchase Doc" width="120px" sortProperty="PurchDoc">
+                        <table:template>
+                            <m:Text text="{treeData>PurchDoc}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- Amount Columns - Show totals for headers, individual amounts for items -->
+                    <table:Column label="Invoice Amount" width="130px" hAlign="End" sortProperty="InvoiceAmt">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalInvoiceAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{treeData>isHeader}" class="sapThemeHighlight-asTextColor"/>
+                            <m:Text text="{path: 'treeData>InvoiceAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Base Amount" width="130px" hAlign="End" sortProperty="BaseAmt">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalBaseAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{treeData>isHeader}" class="sapThemeHighlight-asTextColor"/>
+                            <m:Text text="{path: 'treeData>BaseAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="GST Amount" width="130px" hAlign="End" sortProperty="GstAmt">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalGstAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{treeData>isHeader}" class="sapThemeHighlight-asTextColor"/>
+                            <m:Text text="{path: 'treeData>GstAmt', formatter: '.formatter.formatIndianCurrency'}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="TDS Amount" width="130px" hAlign="End" sortProperty="TdsAmount">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalTdsAmount', formatter: '.formatter.formatIndianCurrency'}" visible="{treeData>isHeader}" class="sapThemeHighlight-asTextColor"/>
+                            <m:Text text="{path: 'treeData>TdsAmount', formatter: '.formatter.formatIndianCurrency'}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Total Liability" width="130px" hAlign="End" sortProperty="TotalLiability">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalLiability', formatter: '.formatter.formatIndianCurrency'}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Amount Claimed" width="130px" hAlign="End" sortProperty="AmtClaimed">
+                        <table:template>
+                            <m:Text text="{path: 'treeData>TotalAmtClaimed', formatter: '.formatter.formatIndianCurrency'}" visible="{treeData>isHeader}" class="sapThemeHighlight-asTextColor"/>
+                            <m:Text text="{path: 'treeData>AmtClaimed', formatter: '.formatter.formatIndianCurrency'}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- Approval Status Columns -->
+                    <table:Column label="PM Status" width="120px" sortProperty="PmApprStatus">
+                        <table:template>
+                            <m:ObjectStatus
+                                text="{treeData>PmApprStatus}"
+                                state="{path:'treeData>PmApprStatus', formatter:'.formatter.formatStatusState'}"
+                                visible="{= !!${treeData>PmApprStatus} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="HOD Status" width="120px" sortProperty="HodApprStatus">
+                        <table:template>
+                            <m:ObjectStatus
+                                text="{treeData>HodApprStatus}"
+                                state="{path:'treeData>HodApprStatus', formatter:'.formatter.formatStatusState'}"
+                                visible="{= !!${treeData>HodApprStatus} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="CFO Status" width="120px" sortProperty="CfoApprStatus">
+                        <table:template>
+                            <m:ObjectStatus
+                                text="{treeData>CfoApprStatus}"
+                                state="{path:'treeData>CfoApprStatus', formatter:'.formatter.formatStatusState'}"
+                                visible="{= !!${treeData>CfoApprStatus} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Auditor Status" width="120px" sortProperty="AudApprStatus">
+                        <table:template>
+                            <m:ObjectStatus
+                                text="{treeData>AudApprStatus}"
+                                state="{path:'treeData>AudApprStatus', formatter:'.formatter.formatStatusState'}"
+                                visible="{= !!${treeData>AudApprStatus} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Director Status" width="120px" sortProperty="DirApprStatus">
+                        <table:template>
+                            <m:ObjectStatus
+                                text="{treeData>DirApprStatus}"
+                                state="{path:'treeData>DirApprStatus', formatter:'.formatter.formatStatusState'}"
+                                visible="{= !!${treeData>DirApprStatus} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- Bank Details - Only show for items -->
+                    <table:Column label="Bank Name" width="200px" sortProperty="BankName">
+                        <table:template>
+                            <m:Text text="{treeData>BankName}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Account Number" width="150px" sortProperty="AccountNumber">
+                        <table:template>
+                            <m:Text text="{treeData>AccountNumber}" visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <table:Column label="Currency" width="80px" sortProperty="Currency">
+                        <table:template>
+                            <m:Text text="{treeData>Currency}"/>
+                        </table:template>
+                    </table:Column>
+
+                </table:TreeTable>
+
+                <!-- Action Buttons -->
+                <m:Toolbar class="sapUiMediumMarginTop">
+                    <m:ToolbarSpacer/>
+                    <m:Button 
+                        id="idApproveSelectedButton"
+                        text="Approve Selected" 
+                        type="Accept" 
+                        icon="sap-icon://accept"
+                        press="onApproveSelectedButtonPress"
+                        enabled="{viewState>/showBulkActions}"
+                        class="sapUiMediumMarginEnd" />
+                    <m:Button 
+                        id="idRejectSelectedButton"
+                        text="Reject Selected" 
+                        type="Reject" 
+                        icon="sap-icon://decline"
+                        press="onRejectSelectedButtonPress"
+                        enabled="{viewState>/showBulkActions}" />
+                </m:Toolbar>
+
+            </m:VBox>
+        </f:content>
+
+    </f:DynamicPage>
+
+    <!-- Dialogs -->
+    <m:Dialog id="idBulkActionDialog" title="Bulk Action" contentWidth="500px" contentHeight="400px">
+        <m:content>
+            <m:VBox class="sapUiMediumMargin">
+                <m:Label text="Selected Items for Bulk Action:" class="sapUiMediumMarginBottom" />
+                <m:List items="{bulkDialog>/selectedItems}" class="sapUiMediumMarginBottom">
+                    <m:StandardListItem 
+                        title="{bulkDialog>displayText}" 
+                        description="Approval: {bulkDialog>ApprovalNo} | Vendor: {bulkDialog>VendorName}" />
+                </m:List>
+                
+                <m:FormattedText htmlText="&lt;strong&gt;Total Items:&lt;/strong&gt; {bulkDialog>/totalCount}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Action:&lt;/strong&gt; {bulkDialog>/actionType}" class="sapUiMediumMarginBottom" />
+                
+                <m:Label text="Remarks:" />
+                <m:TextArea 
+                    id="idRemarksBulkTextArea"
+                    value="{bulkDialog>/remarks}" 
+                    placeholder="Enter remarks for all selected items"
+                    rows="4" />
+            </m:VBox>
+        </m:content>
+        <m:buttons>
+            <m:Button text="{bulkDialog>/confirmButtonText}" type="{bulkDialog>/confirmButtonType}" press="onConfirmButtonTextButtonPress" />
+            <m:Button text="Cancel" press="onCancelButtonPress" />
+        </m:buttons>
+    </m:Dialog>
+
+    <m:Dialog id="idApprovalDialog" title="Approve Payment Item" contentWidth="400px" contentHeight="250px">
+        <m:content>
+            <m:VBox class="sapUiMediumMargin">
+                <m:Label text="Item Details:" class="sapUiMediumMarginBottom" />
+                <m:FormattedText htmlText="&lt;strong&gt;Approval No:&lt;/strong&gt; {approvalDialog>/ApprovalNo}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Item:&lt;/strong&gt; {approvalDialog>/ItemNum}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Vendor:&lt;/strong&gt; {approvalDialog>/VendorName}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Invoice Amount:&lt;/strong&gt; ₹{approvalDialog>/InvoiceAmt}" class="sapUiMediumMarginBottom" />
+                
+                <m:Label text="Remarks:" />
+                <m:TextArea 
+                    id="idRemarksApprovalTextArea"
+                    value="{approvalDialog>/remarks}" 
+                    placeholder="Enter approval remarks (optional)"
+                    rows="4" />
+            </m:VBox>
+                
+        </m:content>
+        <m:buttons>
+            <m:Button text="Approve" type="Accept" press="onApproveButtonPress" />
+            <m:Button text="Cancel" press="onCancelButtonPress" />
+        </m:buttons>
+    </m:Dialog>
+
+    <m:Dialog id="idRejectionDialog" title="Reject Payment Item" contentWidth="400px" contentHeight="250px">
+        <m:content>
+            <m:VBox class="sapUiMediumMargin">
+                <m:Label text="Item Details:" class="sapUiMediumMarginBottom" />
+                <m:FormattedText htmlText="&lt;strong&gt;Approval No:&lt;/strong&gt; {rejectionDialog>/ApprovalNo}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Item:&lt;/strong&gt; {rejectionDialog>/ItemNum}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Vendor:&lt;/strong&gt; {rejectionDialog>/VendorName}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Invoice Amount:&lt;/strong&gt; ₹{rejectionDialog>/InvoiceAmt}" class="sapUiMediumMarginBottom" />
+                
+                <m:Label text="Rejection Reason:" />
+                <m:TextArea 
+                    id="idRemarksRejectionTextArea"
+                    value="{rejectionDialog>/remarks}" 
+                    placeholder="Enter rejection reason"
+                    rows="4" />
+            </m:VBox>
+        </m:content>
+        <m:buttons>
+            <m:Button text="Reject" type="Reject" press="onRejectButtonPress" />
+            <m:Button text="Cancel" press="onCancelButtonPress" />
+        </m:buttons>
+    </m:Dialog>
+
+    <m:Dialog id="idTotalApprovalDialog" title="Approve All Line Items" contentWidth="400px" contentHeight="250px">
+        <m:content>
+            <m:VBox class="sapUiMediumMargin">
+                <m:Label text="Approval Details:" class="sapUiMediumMarginBottom" />
+                <m:FormattedText htmlText="&lt;strong&gt;Approval No:&lt;/strong&gt; {totalApprovalDialog>/ApprovalNo}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Total Items:&lt;/strong&gt; {totalApprovalDialog>/itemCount}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Total Amount:&lt;/strong&gt; ₹{totalApprovalDialog>/totalAmount}" class="sapUiMediumMarginBottom" />
+                
+                <m:Label text="Remarks:" />
+                <m:TextArea 
+                    id="idRemarksTotalApprovalTextArea"
+                    value="{totalApprovalDialog>/remarks}" 
+                    placeholder="Enter approval remarks for all line items (optional)"
+                    rows="4" />
+            </m:VBox>
+        </m:content>
+        <m:buttons>
+            <m:Button text="Approve All Items" type="Accept" press="onApproveAllItemsButtonPress" />
+            <m:Button text="Cancel" press="onCancelButtonPress" />
+        </m:buttons>
+    </m:Dialog>
+
+    <m:Dialog id="idTotalRejectionDialog" title="Reject All Line Items" contentWidth="400px" contentHeight="250px">
+        <m:content>
+            <m:VBox class="sapUiMediumMargin">
+                <m:Label text="Rejection Details:" class="sapUiMediumMarginBottom" />
+                <m:FormattedText htmlText="&lt;strong&gt;Approval No:&lt;/strong&gt; {totalRejectionDialog>/ApprovalNo}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Total Items:&lt;/strong&gt; {totalRejectionDialog>/itemCount}" />
+                <m:FormattedText htmlText="&lt;strong&gt;Total Amount:&lt;/strong&gt; ₹{totalRejectionDialog>/totalAmount}" class="sapUiMediumMarginBottom" />
+                
+                <m:Label text="Rejection Reason:" />
+                <m:TextArea 
+                    id="idRemarksTotalRejectionTextArea"
+                    value="{totalRejectionDialog>/remarks}" 
+                    placeholder="Enter rejection reason for all line items"
+                    rows="4" />
+            </m:VBox>
+        </m:content>
+        <m:buttons>
+            <m:Button text="Reject All Items" type="Reject" press="onRejectAllItemsButtonPress" />
+            <m:Button text="Cancel" press="onCancelButtonPress" />
+        </m:buttons>
+    </m:Dialog>
+
+</mvc:View>
