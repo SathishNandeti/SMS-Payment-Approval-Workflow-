@@ -1,24 +1,32 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/json/JSONModel",
-    "sap/m/MessageToast"
-], function (Controller, JSONModel, MessageToast) {
+    "sap/m/MessageToast",
+    "sap/ui/core/ValueState",
+    "sap/m/MessageBox"
+], function (Controller, JSONModel, MessageToast, ValueState, MessageBox) {
     "use strict";
 
     return Controller.extend("com.incresol.zpaymentworkflow.controller.ProjectManager", {
 
         onInit: function () {
-            // Initialize models
+            console.log("ProjectManager controller initialized");
+            
+            // Initialize view state model for bulk actions and currency display
             var oViewStateModel = new JSONModel({
                 showBulkActions: false,
-                selectedCount: 0
+                selectedCount: 0,
+                showInLakhs: false // Default to rupees view
             });
             this.getView().setModel(oViewStateModel, "viewState");
 
-            var oTreeDataModel = new JSONModel({ treeData: [] });
+            // Initialize tree data model
+            var oTreeDataModel = new JSONModel({
+                treeData: []
+            });
             this.getView().setModel(oTreeDataModel, "treeData");
 
-            // Load data
+            // Wait for OData model to be available and load data
             this._waitForModelAndLoadData();
         },
 
@@ -26,12 +34,24 @@ sap.ui.define([
             var oModel = this.getView().getModel();
             
             if (oModel && oModel.getServiceMetadata()) {
+                // Model is ready, load data immediately
+                console.log("OData model ready, loading data");
                 this._loadPaymentData();
             } else if (oModel) {
+                // Model exists but metadata not loaded yet
+                console.log("Waiting for OData metadata to load");
                 oModel.attachMetadataLoaded(function() {
+                    console.log("OData metadata loaded, now loading data");
                     this._loadPaymentData();
                 }.bind(this));
+                
+                oModel.attachMetadataFailed(function(oEvent) {
+                    console.error("OData metadata loading failed:", oEvent.getParameters());
+                    MessageToast.show("Failed to load OData metadata");
+                });
             } else {
+                // Model not available yet, retry after delay
+                console.log("OData model not available, retrying in 1 second");
                 setTimeout(function() {
                     this._waitForModelAndLoadData();
                 }.bind(this), 1000);
@@ -42,72 +62,309 @@ sap.ui.define([
             var oModel = this.getView().getModel();
             
             if (!oModel) {
+                console.log("OData model not available");
                 MessageToast.show("OData service not available");
                 return;
             }
 
+            console.log("Loading payment data from PaymentHeaderSet and PaymentItemSet...");
             var that = this;
-            oModel.read("/PaymentItemSet", {
-                success: function (oData) {
-                    if (oData.results && oData.results.length > 0) {
-                        that._transformItemDataToTree(oData.results);
-                        MessageToast.show("Payment data loaded: " + oData.results.length + " items");
-                    } else {
-                        MessageToast.show("No payment data available");
-                        that.getView().getModel("treeData").setData({ treeData: [] });
-                    }
-                },
-                error: function (oError) {
-                    MessageToast.show("Error loading payment data");
+            
+            // Load both PaymentHeaderSet and PaymentItemSet
+            Promise.all([
+                new Promise(function(resolve, reject) {
+                    oModel.read("/PaymentHeaderSet", {
+                        success: resolve,
+                        error: reject
+                    });
+                }),
+                new Promise(function(resolve, reject) {
+                    oModel.read("/PaymentItemSet", {
+                        success: resolve,
+                        error: reject
+                    });
+                })
+            ]).then(function(results) {
+                var oHeaderData = results[0];
+                var oItemData = results[1];
+                
+                console.log("PaymentHeaderSet loaded:", oHeaderData.results.length, "headers");
+                console.log("PaymentItemSet loaded:", oItemData.results.length, "items");
+                
+                // Debug: Log the actual header data
+                if (oHeaderData.results && oHeaderData.results.length > 0) {
+                    console.log("Sample PaymentHeaderSet data:", oHeaderData.results[0]);
+                }
+                
+                // Always try to use PaymentHeaderSet first
+                if (oHeaderData.results && oHeaderData.results.length > 0) {
+                    console.log("Using PaymentHeaderSet for headers");
+                    that._transformHeaderItemDataToTree(oHeaderData.results, oItemData.results);
+                    MessageToast.show("Payment data loaded: " + oHeaderData.results.length + " headers with " + oItemData.results.length + " items");
+                } else if (oItemData.results && oItemData.results.length > 0) {
+                    console.log("PaymentHeaderSet empty, creating header structure from PaymentItemSet");
+                    that._createHeaderStructureFromItems(oItemData.results);
+                    MessageToast.show("Payment data loaded: " + oItemData.results.length + " items (headers created from items)");
+                } else {
+                    console.log("No payment data found");
+                    MessageToast.show("No payment data available");
                     that.getView().getModel("treeData").setData({ treeData: [] });
                 }
+            }).catch(function(oError) {
+                console.error("Error loading payment data:", oError);
+                MessageToast.show("Error loading payment data");
+                that.getView().getModel("treeData").setData({ treeData: [] });
             });
         },
 
-        _transformItemDataToTree: function (aPaymentItems) {
+        _createHeaderStructureFromItems: function (aItems) {
+            console.log("_createHeaderStructureFromItems called with", aItems.length, "items");
+            console.log("Sample item data:", aItems[0]);
+            
+            // Group items by ApprovalNo to create PaymentHeaderSet-like structure
             var oGroupedData = {};
             
-            aPaymentItems.forEach(function (oItem) {
+            aItems.forEach(function (oItem) {
                 var sApprovalNo = oItem.ApprovalNo;
                 
                 if (!oGroupedData[sApprovalNo]) {
+                    // Create header structure matching PaymentHeaderSet fields EXACTLY
                     oGroupedData[sApprovalNo] = {
+                        // PaymentHeaderSet fields (use exact field names from metadata)
                         ApprovalNo: sApprovalNo,
-                        VendorNumber: oItem.VendorNumber,
-                        VendorName: oItem.VendorName,
-                        displayText: "Approval: " + sApprovalNo + " - " + oItem.VendorName,
+                        CreatedOn: oItem.DocDate || new Date(), // Use DocDate as CreatedOn
+                        DateOfApproval: oItem.DocDate || new Date(), // Date of Approval
+                        ProfitCenter: "PC001", // Mock data - replace with actual logic when PaymentHeaderSet is populated
+                        ProfitCenterName: "Sample Profit Center", // Mock data - replace with actual logic when PaymentHeaderSet is populated
+                        VendorCode: "", // Not available at header level from PaymentItemSet
+                        CompanyCode: "1000", // Mock data - replace with actual logic when PaymentHeaderSet is populated
+                        CreatedBy: "SYSTEM", // Mock data - replace with actual logic when PaymentHeaderSet is populated
+                        CreatedAt: new Date(), // Current time
+                        OverallStatus: "PENDING", // Default status
+                        
+                        // Display properties for tree functionality
                         isHeader: true,
-                        serialNumber: 0,
+                        displayText: "Approval: " + sApprovalNo,
+                        
+                        // Aggregated amounts (will be calculated from items)
                         TotalInvoiceAmt: 0,
+                        TotalBaseAmt: 0,
+                        TotalGstAmt: 0,
+                        TotalTdsAmount: 0,
                         TotalLiability: 0,
+                        TotalAmtClaimed: 0,
+                        ItemCount: 0,
+                        
+                        // For header rows - NO vendor info (as per PaymentHeaderSet structure)
+                        VendorCode: "", // Empty for header - vendor info only in items
+                        VendorName: "", // Empty for header - vendor info only in items
+                        Currency: aItems.length > 0 ? aItems[0].Currency : "",
+                        
+                        // Children items
                         children: []
                     };
                 }
                 
-                var oTreeItem = Object.assign({}, oItem, {
-                    displayText: "Item " + oItem.ItemNum + " - " + oItem.VendorName,
+                // Add item as child with original PaymentItemSet field names
+                var oChildItem = Object.assign({}, oItem, {
                     isHeader: false,
-                    serialNumber: 0
+                    displayText: "Item " + oItem.ItemNum + " - " + oItem.VendorName
+                    // Keep all original PaymentItemSet fields including VendorCode, VendorName, etc.
                 });
                 
-                oGroupedData[sApprovalNo].children.push(oTreeItem);
-                oGroupedData[sApprovalNo].TotalInvoiceAmt += parseFloat(oItem.InvoiceAmt || 0);
-                oGroupedData[sApprovalNo].TotalLiability += parseFloat(oItem.TotalLiability || 0);
+                oGroupedData[sApprovalNo].children.push(oChildItem);
+                
+                // Update header aggregated totals
+                var oHeader = oGroupedData[sApprovalNo];
+                oHeader.TotalInvoiceAmt += parseFloat(oItem.InvoiceAmt || 0);
+                oHeader.TotalBaseAmt += parseFloat(oItem.BaseAmt || 0);
+                oHeader.TotalGstAmt += parseFloat(oItem.GstAmt || 0);
+                oHeader.TotalTdsAmount += parseFloat(oItem.TdsAmount || 0);
+                oHeader.TotalLiability += parseFloat(oItem.TotalLiability || 0);
+                oHeader.TotalAmtClaimed += parseFloat(oItem.AmtClaimed || 0);
+                oHeader.ItemCount++;
+                
+                // Update header status based on item statuses
+                if (oItem.PmApprStatus && oItem.PmApprStatus !== "PENDING") {
+                    oHeader.OverallStatus = oItem.PmApprStatus;
+                }
             });
 
+            // Convert grouped data to tree array
             var aTreeData = Object.keys(oGroupedData).map(function (sKey) {
-                return oGroupedData[sKey];
-            });
-
-            var iSerialNumber = 1;
-            aTreeData.forEach(function(oApproval) {
-                oApproval.serialNumber = iSerialNumber++;
-                oApproval.children.forEach(function(oItem) {
-                    oItem.serialNumber = iSerialNumber++;
+                var oHeader = oGroupedData[sKey];
+                // Format aggregated amounts
+                oHeader.TotalInvoiceAmt = oHeader.TotalInvoiceAmt.toFixed(2);
+                oHeader.TotalBaseAmt = oHeader.TotalBaseAmt.toFixed(2);
+                oHeader.TotalGstAmt = oHeader.TotalGstAmt.toFixed(2);
+                oHeader.TotalTdsAmount = oHeader.TotalTdsAmount.toFixed(2);
+                oHeader.TotalLiability = oHeader.TotalLiability.toFixed(2);
+                oHeader.TotalAmtClaimed = oHeader.TotalAmtClaimed.toFixed(2);
+                
+                console.log("Final header created:", {
+                    ApprovalNo: oHeader.ApprovalNo,
+                    ProfitCenter: oHeader.ProfitCenter,
+                    ProfitCenterName: oHeader.ProfitCenterName,
+                    DateOfApproval: oHeader.DateOfApproval
                 });
+                
+                return oHeader;
             });
 
-            this.getView().getModel("treeData").setData({ treeData: aTreeData });
+            console.log("Header structure created from PaymentItemSet:", aTreeData.length, "headers with", aItems.length, "total items");
+            console.log("Tree data being set to model:", aTreeData);
+
+            // Set the tree data to the model
+            this.getView().getModel("treeData").setData({
+                treeData: aTreeData
+            });
+
+            // Expand first level after data is set
+            setTimeout(function() {
+                var oTreeTable = this.byId("idTreeTable");
+                if (oTreeTable && aTreeData.length > 0) {
+                    // Expand all first level nodes
+                    for (var i = 0; i < aTreeData.length; i++) {
+                        oTreeTable.expand(i);
+                    }
+                }
+            }.bind(this), 100);
+        },
+
+        _transformHeaderItemDataToTree: function (aHeaders, aItems) {
+            console.log("_transformHeaderItemDataToTree called with:", aHeaders.length, "headers and", aItems.length, "items");
+            if (aHeaders.length > 0) {
+                console.log("Sample header data:", aHeaders[0]);
+            }
+            
+            // Create a map of items by ApprovalNo for quick lookup
+            var oItemsByApproval = {};
+            aItems.forEach(function(oItem) {
+                var sApprovalNo = oItem.ApprovalNo;
+                if (!oItemsByApproval[sApprovalNo]) {
+                    oItemsByApproval[sApprovalNo] = [];
+                }
+                oItemsByApproval[sApprovalNo].push(oItem);
+            });
+
+            // Transform headers to tree structure
+            var aTreeData = [];
+
+            aHeaders.forEach(function(oHeader) {
+                var sApprovalNo = oHeader.ApprovalNo;
+                var aHeaderItems = oItemsByApproval[sApprovalNo] || [];
+                
+                console.log("Processing header:", sApprovalNo, "with fields:", {
+                    ProfitCenter: oHeader.ProfitCenter,
+                    ProfitCenterName: oHeader.ProfitCenterName,
+                    CreatedOn: oHeader.CreatedOn
+                });
+                
+                // Calculate aggregated totals from items
+                var fTotalInvoiceAmt = 0;
+                var fTotalBaseAmt = 0;
+                var fTotalGstAmt = 0;
+                var fTotalTdsAmount = 0;
+                var fTotalLiability = 0;
+                var fTotalAmtClaimed = 0;
+                
+                aHeaderItems.forEach(function(oItem) {
+                    fTotalInvoiceAmt += parseFloat(oItem.InvoiceAmt || 0);
+                    fTotalBaseAmt += parseFloat(oItem.BaseAmt || 0);
+                    fTotalGstAmt += parseFloat(oItem.GstAmt || 0);
+                    fTotalTdsAmount += parseFloat(oItem.TdsAmount || 0);
+                    fTotalLiability += parseFloat(oItem.TotalLiability || 0);
+                    fTotalAmtClaimed += parseFloat(oItem.AmtClaimed || 0);
+                });
+
+                // Create header node using PaymentHeaderSet fields
+                var oHeaderNode = {
+                    // PaymentHeaderSet fields (exact fields from metadata)
+                    ApprovalNo: oHeader.ApprovalNo,
+                    CreatedOn: oHeader.CreatedOn,
+                    DateOfApproval: oHeader.CreatedOn, // Date of Approval from PaymentHeaderSet
+                    ProfitCenter: oHeader.ProfitCenter,
+                    ProfitCenterName: oHeader.ProfitCenterName,
+                    CompanyCode: oHeader.CompanyCode,
+                    CreatedBy: oHeader.CreatedBy,
+                    CreatedAt: oHeader.CreatedAt,
+                    OverallStatus: oHeader.OverallStatus,
+                    
+                    // Display properties
+                    isHeader: true,
+                    displayText: "Approval: " + oHeader.ApprovalNo + " - " + (oHeader.ProfitCenterName || ""),
+                    
+                    // Aggregated amounts from items
+                    TotalInvoiceAmt: fTotalInvoiceAmt.toFixed(2),
+                    TotalBaseAmt: fTotalBaseAmt.toFixed(2),
+                    TotalGstAmt: fTotalGstAmt.toFixed(2),
+                    TotalTdsAmount: fTotalTdsAmount.toFixed(2),
+                    TotalLiability: fTotalLiability.toFixed(2),
+                    TotalAmtClaimed: fTotalAmtClaimed.toFixed(2),
+                    ItemCount: aHeaderItems.length,
+                    
+                    // Header level - NO vendor info (not available in PaymentHeaderSet)
+                    VendorCode: "", // Not available in PaymentHeaderSet
+                    VendorName: "", // Not available in PaymentHeaderSet
+                    Currency: aHeaderItems.length > 0 ? aHeaderItems[0].Currency : "",
+                    
+                    // Children items
+                    children: []
+                };
+                
+                console.log("Created header node:", {
+                    ApprovalNo: oHeaderNode.ApprovalNo,
+                    ProfitCenter: oHeaderNode.ProfitCenter,
+                    ProfitCenterName: oHeaderNode.ProfitCenterName,
+                    DateOfApproval: oHeaderNode.DateOfApproval
+                });
+
+                // Add child items
+                aHeaderItems.forEach(function(oItem) {
+                    var oChildItem = Object.assign({}, oItem, {
+                        isHeader: false,
+                        displayText: "Item " + oItem.ItemNum + " - " + oItem.VendorName,
+                        VendorCode: oItem.VendorCode // Map for view compatibility
+                    });
+                    oHeaderNode.children.push(oChildItem);
+                });
+
+                aTreeData.push(oHeaderNode);
+            });
+
+            console.log("Tree data created from PaymentHeaderSet:", aTreeData.length, "headers with total items:", aItems.length);
+            if (aTreeData.length > 0) {
+                console.log("Final tree data sample:", aTreeData[0]);
+            }
+
+            // Set the tree data to the model
+            this.getView().getModel("treeData").setData({
+                treeData: aTreeData
+            });
+
+            // Expand first level after data is set
+            setTimeout(function() {
+                var oTreeTable = this.byId("idTreeTable");
+                if (oTreeTable && aTreeData.length > 0) {
+                    // Expand all first level nodes
+                    for (var i = 0; i < aTreeData.length; i++) {
+                        oTreeTable.expand(i);
+                    }
+                }
+            }.bind(this), 100);
+        },
+
+        onSwitchShowInLakhsChange: function(oEvent) {
+            var oSwitch = oEvent.getSource();
+            var bState = oSwitch.getState();
+            
+            // Update the view state model
+            var oViewStateModel = this.getView().getModel("viewState");
+            oViewStateModel.setProperty("/showInLakhs", bState);
+            
+            // Show appropriate message
+            var sMessage = bState ? "Amounts now displayed in Lakhs" : "Amounts now displayed in Rupees";
+            MessageToast.show(sMessage);
         },
 
         onTreeTableRowSelectionChange: function (oEvent) {
@@ -115,21 +372,18 @@ sap.ui.define([
             var aSelectedIndices = oTable.getSelectedIndices();
             var oViewStateModel = this.getView().getModel("viewState");
             
+            // Update view state based on selection
             var bHasSelection = aSelectedIndices.length > 0;
             oViewStateModel.setProperty("/showBulkActions", bHasSelection);
             oViewStateModel.setProperty("/selectedCount", aSelectedIndices.length);
             
             if (bHasSelection) {
-                MessageToast.show(aSelectedIndices.length + " item(s) selected");
+                MessageToast.show(aSelectedIndices.length + " item(s) selected. Use buttons below to approve or reject.");
             }
         },
 
-        onTreeTableToggleOpenState: function (oEvent) {
-            // Handle tree node expand/collapse
-        },
-
-        onApproveSelectedButtonPress: function () {
-            var oTable = this.byId("idPaymentTreeTable");
+        onApproveButtonPress: function () {
+            var oTable = this.byId("idTreeTable");
             var aSelectedIndices = oTable.getSelectedIndices();
             
             if (aSelectedIndices.length === 0) {
@@ -145,15 +399,11 @@ sap.ui.define([
                 }
             });
             
-            if (aSelectedItems.length === 1) {
-                this._showItemApprovalDialog(aSelectedItems[0]);
-            } else {
-                this._showBulkActionDialog(aSelectedItems, "APPROVE");
-            }
+            this._openApprovalDialog(aSelectedItems, "APPROVE");
         },
 
-        onRejectSelectedButtonPress: function () {
-            var oTable = this.byId("idPaymentTreeTable");
+        onRejectButtonPress: function () {
+            var oTable = this.byId("idTreeTable");
             var aSelectedIndices = oTable.getSelectedIndices();
             
             if (aSelectedIndices.length === 0) {
@@ -169,224 +419,60 @@ sap.ui.define([
                 }
             });
             
-            if (aSelectedItems.length === 1) {
-                this._showItemRejectionDialog(aSelectedItems[0]);
-            } else {
-                this._showBulkActionDialog(aSelectedItems, "REJECT");
-            }
+            this._openApprovalDialog(aSelectedItems, "REJECT");
         },
 
-        _showBulkActionDialog: function (aSelectedItems, sActionType) {
-            var oDialogModel = new JSONModel({
-                selectedItems: aSelectedItems,
-                totalCount: aSelectedItems.length,
-                actionType: sActionType,
-                confirmButtonText: sActionType === "APPROVE" ? "Approve All" : "Reject All",
-                confirmButtonType: sActionType === "APPROVE" ? "Accept" : "Reject",
-                remarks: ""
+        _openApprovalDialog: function (aSelectedItems, sActionType) {
+            var sDialogTitle = sActionType === "APPROVE" ? "Approve Items" : "Reject Items";
+            var bRemarksRequired = sActionType === "REJECT";
+            
+            // Simple MessageBox for now to test
+            var sMessage = "You have selected " + aSelectedItems.length + " items for " + sActionType.toLowerCase() + ".\n\n";
+            sMessage += "Items:\n";
+            aSelectedItems.forEach(function(item, index) {
+                sMessage += (index + 1) + ". " + item.ApprovalNo + " - " + item.VendorName + " (" + item.InvoiceAmt + " " + item.Currency + ")\n";
             });
             
-            // Get or create bulk dialog
-            if (!this._bulkDialog) {
-                this._bulkDialog = this.byId("idBulkActionDialog");
+            if (bRemarksRequired) {
+                sMessage += "\nNote: Remarks will be required for rejection.";
             }
             
-            this._bulkDialog.setModel(oDialogModel, "bulkDialog");
-            this._bulkDialog.open();
-        },
-
-        onConfirmButtonTextButtonPress: function () {
-            var oDialogModel = this._bulkDialog.getModel("bulkDialog");
-            var oData = oDialogModel.getData();
-            
-            // Validate for rejection
-            if (oData.actionType === "REJECT" && (!oData.remarks || oData.remarks.trim() === "")) {
-                MessageToast.show("Please enter a rejection reason");
-                return;
-            }
-            
-            // Process bulk action
-            this._processBulkAction(oData.selectedItems, oData.actionType, oData.remarks);
-            
-            // Clear selection and close dialog
-            this.byId("idPaymentTreeTable").clearSelection();
-            this.getView().getModel("viewState").setProperty("/showBulkActions", false);
-            this._bulkDialog.close();
-            
-            MessageToast.show(oData.totalCount + " items " + (oData.actionType === "APPROVE" ? "approved" : "rejected") + " successfully");
-        },
-
-        onCancelButtonPress: function () {
-            // Close any open dialog
-            if (this._bulkDialog && this._bulkDialog.isOpen()) {
-                this._bulkDialog.close();
-            }
-            if (this._approvalDialog && this._approvalDialog.isOpen()) {
-                this._approvalDialog.close();
-            }
-            if (this._rejectionDialog && this._rejectionDialog.isOpen()) {
-                this._rejectionDialog.close();
-            }
-            if (this._totalApprovalDialog && this._totalApprovalDialog.isOpen()) {
-                this._totalApprovalDialog.close();
-            }
-            if (this._totalRejectionDialog && this._totalRejectionDialog.isOpen()) {
-                this._totalRejectionDialog.close();
-            }
-        },
-
-        onTreeTableToggleOpenState: function (oEvent) {
-            // Handle tree node expand/collapse
-        },
-
-        _showItemApprovalDialog: function (oItemData) {
-            // Create dialog model with item data
-            var oDialogModel = new JSONModel({
-                ApprovalNo: oItemData.ApprovalNo,
-                ItemNum: oItemData.ItemNum,
-                VendorName: oItemData.VendorName,
-                InvoiceAmt: oItemData.InvoiceAmt,
-                remarks: "",
-                originalItem: oItemData
+            var that = this;
+            MessageBox.confirm(sMessage, {
+                title: sDialogTitle,
+                onClose: function (oAction) {
+                    if (oAction === MessageBox.Action.OK) {
+                        if (bRemarksRequired) {
+                            // For rejection, ask for remarks
+                            that._askForRemarks(aSelectedItems, sActionType);
+                        } else {
+                            // For approval, proceed directly
+                            that._processBulkAction(aSelectedItems, sActionType, "Approved via bulk action");
+                        }
+                    }
+                }
             });
-            
-            // Get or create dialog
-            if (!this._approvalDialog) {
-                this._approvalDialog = this.byId("idApprovalDialog");
-            }
-            
-            this._approvalDialog.setModel(oDialogModel, "approvalDialog");
-            this._approvalDialog.open();
         },
-
-        _showItemRejectionDialog: function (oItemData) {
-            // Create dialog model with item data
-            var oDialogModel = new JSONModel({
-                ApprovalNo: oItemData.ApprovalNo,
-                ItemNum: oItemData.ItemNum,
-                VendorName: oItemData.VendorName,
-                InvoiceAmt: oItemData.InvoiceAmt,
-                remarks: "",
-                originalItem: oItemData
+        
+        _askForRemarks: function(aSelectedItems, sActionType) {
+            var that = this;
+            var sMessage = "Please enter remarks for rejection:";
+            
+            MessageBox.show(sMessage, {
+                icon: MessageBox.Icon.QUESTION,
+                title: "Enter Remarks",
+                actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
+                emphasizedAction: MessageBox.Action.OK,
+                initialFocus: "OK",
+                details: "Remarks are mandatory for rejection of payment items.",
+                onClose: function (oAction) {
+                    if (oAction === MessageBox.Action.OK) {
+                        // For now, use a default remark - in real implementation, you'd get this from an input
+                        var sRemarks = "Rejected via bulk action - " + new Date().toLocaleString();
+                        that._processBulkAction(aSelectedItems, sActionType, sRemarks);
+                    }
+                }
             });
-            
-            // Get or create dialog
-            if (!this._rejectionDialog) {
-                this._rejectionDialog = this.byId("idRejectionDialog");
-            }
-            
-            this._rejectionDialog.setModel(oDialogModel, "rejectionDialog");
-            this._rejectionDialog.open();
-        },
-
-        _showTotalApprovalDialog: function (oApprovalData) {
-            // Calculate total amount and item count
-            var iTotalAmount = 0;
-            var iItemCount = oApprovalData.children.length;
-            
-            oApprovalData.children.forEach(function(oItem) {
-                iTotalAmount += parseFloat(oItem.InvoiceAmt || 0);
-            });
-            
-            // Create dialog model with approval data
-            var oDialogModel = new JSONModel({
-                ApprovalNo: oApprovalData.ApprovalNo,
-                itemCount: iItemCount,
-                totalAmount: iTotalAmount.toFixed(2),
-                remarks: "",
-                originalApproval: oApprovalData
-            });
-            
-            // Get or create dialog
-            if (!this._totalApprovalDialog) {
-                this._totalApprovalDialog = this.byId("idTotalApprovalDialog");
-            }
-            
-            this._totalApprovalDialog.setModel(oDialogModel, "totalApprovalDialog");
-            this._totalApprovalDialog.open();
-        },
-
-        _showTotalRejectionDialog: function (oApprovalData) {
-            // Calculate total amount and item count
-            var iTotalAmount = 0;
-            var iItemCount = oApprovalData.children.length;
-            
-            oApprovalData.children.forEach(function(oItem) {
-                iTotalAmount += parseFloat(oItem.InvoiceAmt || 0);
-            });
-            
-            // Create dialog model with approval data
-            var oDialogModel = new JSONModel({
-                ApprovalNo: oApprovalData.ApprovalNo,
-                itemCount: iItemCount,
-                totalAmount: iTotalAmount.toFixed(2),
-                remarks: "",
-                originalApproval: oApprovalData
-            });
-            
-            // Get or create dialog
-            if (!this._totalRejectionDialog) {
-                this._totalRejectionDialog = this.byId("idTotalRejectionDialog");
-            }
-            
-            this._totalRejectionDialog.setModel(oDialogModel, "totalRejectionDialog");
-            this._totalRejectionDialog.open();
-        },
-
-        onApproveButtonPress: function () {
-            var oDialogModel = this._approvalDialog.getModel("approvalDialog");
-            var oData = oDialogModel.getData();
-            
-            // Process individual item approval
-            this._processApproval(oData, "APPROVED");
-            
-            this._approvalDialog.close();
-            MessageToast.show("Item approved successfully");
-        },
-
-        onRejectButtonPress: function () {
-            var oDialogModel = this._rejectionDialog.getModel("rejectionDialog");
-            var oData = oDialogModel.getData();
-            
-            // Validate rejection reason
-            if (!oData.remarks || oData.remarks.trim() === "") {
-                MessageToast.show("Please enter a rejection reason");
-                return;
-            }
-            
-            // Process individual item rejection
-            this._processApproval(oData, "REJECTED");
-            
-            this._rejectionDialog.close();
-            MessageToast.show("Item rejected successfully");
-        },
-
-        onApproveAllItemsButtonPress: function () {
-            var oDialogModel = this._totalApprovalDialog.getModel("totalApprovalDialog");
-            var oData = oDialogModel.getData();
-            
-            // Process all items approval
-            this._processTotalApproval(oData, "APPROVED");
-            
-            this._totalApprovalDialog.close();
-            MessageToast.show("All line items approved successfully");
-        },
-
-        onRejectAllItemsButtonPress: function () {
-            var oDialogModel = this._totalRejectionDialog.getModel("totalRejectionDialog");
-            var oData = oDialogModel.getData();
-            
-            // Validate rejection reason
-            if (!oData.remarks || oData.remarks.trim() === "") {
-                MessageToast.show("Please enter a rejection reason");
-                return;
-            }
-            
-            // Process all items rejection
-            this._processTotalApproval(oData, "REJECTED");
-            
-            this._totalRejectionDialog.close();
-            MessageToast.show("All line items rejected successfully");
         },
 
         _processBulkAction: function (aSelectedItems, sActionType, sRemarks) {
@@ -402,7 +488,7 @@ sap.ui.define([
                     
                     // Check if it's a header item
                     if (oApproval.ApprovalNo === oSelectedItem.ApprovalNo && 
-                        oApproval.VendorNumber === oSelectedItem.VendorNumber && 
+                        oApproval.VendorCode === oSelectedItem.VendorCode && 
                         oSelectedItem.isHeader) {
                         // Update header and all its children
                         oApproval.OverallStatus = sStatus;
@@ -429,6 +515,12 @@ sap.ui.define([
             // Refresh the model
             oTreeModel.setData({ treeData: aTreeData });
             
+            // Clear selection
+            this.byId("idTreeTable").clearSelection();
+            this.getView().getModel("viewState").setProperty("/showBulkActions", false);
+            
+            MessageToast.show(aSelectedItems.length + " items " + (sActionType === "APPROVE" ? "approved" : "rejected") + " successfully");
+            
             console.log("Bulk action processed:", {
                 ItemCount: aSelectedItems.length,
                 Action: sActionType,
@@ -437,75 +529,38 @@ sap.ui.define([
             });
         },
 
-        _processApproval: function (oApprovalData, sStatus) {
-            // This method would typically make an OData call to update the approval status
-            // For now, we'll just update the local model
-            
-            var oTreeModel = this.getView().getModel("treeData");
-            var aTreeData = oTreeModel.getData().treeData;
-            
-            // Find and update the item in the tree data
-            for (var i = 0; i < aTreeData.length; i++) {
-                var oApproval = aTreeData[i];
-                for (var j = 0; j < oApproval.children.length; j++) {
-                    var oItem = oApproval.children[j];
-                    if (oItem.ApprovalNo === oApprovalData.ApprovalNo && 
-                        oItem.ItemNum === oApprovalData.ItemNum) {
-                        
-                        // Update the item status based on current user role
-                        // This is a simplified example - you'd determine the role dynamically
-                        oItem.PmApprStatus = sStatus;
-                        oItem.PmApprRemarks = oApprovalData.remarks;
-                        break;
-                    }
-                }
-            }
-            
-            // Refresh the model
-            oTreeModel.setData({ treeData: aTreeData });
-            
-            console.log("Individual approval processed:", {
-                ApprovalNo: oApprovalData.ApprovalNo,
-                ItemNum: oApprovalData.ItemNum,
-                Status: sStatus,
-                Remarks: oApprovalData.remarks
-            });
-        },
-
-        _processTotalApproval: function (oApprovalData, sStatus) {
-            // This method would typically make an OData call to update all items
-            // For now, we'll just update the local model
-            
-            var oTreeModel = this.getView().getModel("treeData");
-            var aTreeData = oTreeModel.getData().treeData;
-            
-            // Find and update all items in the approval
-            for (var i = 0; i < aTreeData.length; i++) {
-                var oApproval = aTreeData[i];
-                if (oApproval.ApprovalNo === oApprovalData.ApprovalNo) {
-                    // Update all child items
-                    for (var j = 0; j < oApproval.children.length; j++) {
-                        var oItem = oApproval.children[j];
-                        oItem.PmApprStatus = sStatus;
-                        oItem.PmApprRemarks = oApprovalData.remarks;
-                    }
-                    break;
-                }
-            }
-            
-            // Refresh the model
-            oTreeModel.setData({ treeData: aTreeData });
-            
-            console.log("Total approval processed:", {
-                ApprovalNo: oApprovalData.ApprovalNo,
-                ItemCount: oApprovalData.itemCount,
-                Status: sStatus,
-                Remarks: oApprovalData.remarks
-            });
-        },
-
+        // Formatter functions
         // Formatter functions
         formatter: {
+            formatCurrency: function (value, showInLakhs) {
+                if (!value || value === "" || isNaN(parseFloat(value))) {
+                    return "₹0.00";
+                }
+
+                var numericValue = parseFloat(value);
+                
+                if (showInLakhs) {
+                    if (numericValue >= 100000) {
+                        // Convert to lakhs (1 lakh = 100,000)
+                        var lakhValue = numericValue / 100000;
+                        return "₹" + lakhValue.toFixed(2) + "L";
+                    } else if (numericValue >= 1000) {
+                        // Show in thousands for smaller amounts
+                        var thousandValue = numericValue / 1000;
+                        return "₹" + thousandValue.toFixed(2) + "K";
+                    } else {
+                        // Show as is for very small amounts
+                        return "₹" + numericValue.toFixed(2);
+                    }
+                } else {
+                    // Display in rupees with proper formatting
+                    return "₹" + numericValue.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            },
+
             formatIndianCurrency: function (value) {
                 if (!value || value === "" || isNaN(value)) {
                     return "₹0.00";
@@ -530,27 +585,27 @@ sap.ui.define([
                 return "₹" + displayValue.toFixed(2) + suffix;
             },
 
-            formatStatusState: function (status) {
-                if (!status) return "None";
+            statusState: function (status) {
+                if (!status) return ValueState.None;
                 
                 switch (status.toUpperCase()) {
                     case "APPROVED":
                     case "COMPLETE":
                     case "SUCCESS":
-                        return "Success";
+                        return ValueState.Success;
                     case "REJECTED":
                     case "CANCELLED":
                     case "ERROR":
-                        return "Error";
+                        return ValueState.Error;
                     case "PENDING":
                     case "IN_PROCESS":
                     case "WARNING":
-                        return "Warning";
+                        return ValueState.Warning;
                     case "INFORMATION":
                     case "INFO":
-                        return "Information";
+                        return ValueState.Information;
                     default:
-                        return "None";
+                        return ValueState.None;
                 }
             }
         }
