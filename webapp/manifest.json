@@ -23,7 +23,7 @@
           "annotations": [],
           "localUri": "localService/mainService/metadata.xml",
           "odataVersion": "2.0",
-          "useBatch":false
+          "useBatch": false
         }
       }
     },
@@ -80,6 +80,11 @@
         }
       },
       "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      },
+      "oModel": {
         "dataSource": "mainService",
         "preload": true,
         "settings": {}
