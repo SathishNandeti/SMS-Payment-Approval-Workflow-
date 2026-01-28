@@ -45,8 +45,8 @@
                                     text="{
                                         parts: [
                                             { path: 'dialogModel>isHeader' },
-                                            { path: 'dialogModel>TotalInvoiceAmt' },
-                                            { path: 'dialogModel>InvoiceAmt' },
+                                            { path: 'dialogModel>TotalBaseAmt' },
+                                            { path: 'dialogModel>BaseAmt' },
                                             { path: 'dialogModel>Currency' }
                                         ],
                                         formatter: '.formatDialogAmount'

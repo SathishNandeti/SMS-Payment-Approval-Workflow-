@@ -4,6 +4,7 @@
     xmlns:table="sap.ui.table"
     xmlns:m="sap.m"
     xmlns:f="sap.f"
+    xmlns:core="sap.ui.core"
     displayBlock="true"
     height="100%">
 
@@ -26,7 +27,7 @@
                 class="sapUiContentPadding">
 
                 <!-- ================= ACTION BAR ================= -->
-                <m:Toolbar class="sapUiMediumMarginBottom">
+                <m:Toolbar class="sapUiMediumMarginBottom customButtonToolbar">
                     <!-- Currency Display Switch -->
                     <m:Label text="Show in Lakhs:" class="sapUiTinyMarginEnd"/>
                     <m:Switch
@@ -35,17 +36,33 @@
                         change="onSwitchShowInLakhsChange"
                         tooltip="Toggle between Rupees and Lakhs view"/>
                     
+                    <!-- Selection Count Display -->
+                    <m:Text 
+                        text="{= ${viewState>/selectedCount} > 0 ? ${viewState>/selectedCount} + ' item(s) selected' : ''}"
+                        visible="{viewState>/showBulkActions}"
+                        class="sapUiMediumMarginBegin selectionCountBadge"/>
+                    
                     <m:ToolbarSpacer/>
-                    <m:Button
-                        text="Approve"
-                        type="Success"
-                        enabled="{viewState>/showBulkActions}"
-                        press="onApproveButtonPress"/>
-                    <m:Button
-                        text="Reject"
-                        type="Reject"
-                        enabled="{viewState>/showBulkActions}"
-                        press="onRejectButtonPress"/>
+                    
+                    <!-- Button Container -->
+                    <m:HBox class="buttonContainer">
+                        <m:Button
+                            id="idApproveButton"
+                            text="Approve"
+                            type="Success"
+                            enabled="{viewState>/showBulkActions}"
+                            press="onApproveButtonPress"
+                            class="approveButton"
+                            tooltip="Approve selected items"/>
+                        <m:Button
+                            id="idRejectButton"
+                            text="Reject"
+                            type="Reject"
+                            enabled="{viewState>/showBulkActions}"
+                            press="onRejectButtonPress"
+                            class="rejectButton"
+                            tooltip="Reject selected items"/>
+                    </m:HBox>
                 </m:Toolbar>
 
                 <!-- ================= TREE TABLE ================= -->
@@ -100,21 +117,17 @@
                         </table:template>
                     </table:Column>
 
-                    <!-- ================= Vendor Code (Header like ProfitCenter) ================= -->
+                    <!-- ================= Vendor Code ================= -->
                     <table:Column label="Vendor Code" width="120px">
                         <table:template>
-                            <m:Text
-                                text="{treeData>VendorCode}"
-                                visible="{treeData>isHeader}"/>
+                            <m:Text text="{treeData>VendorCode}"/>
                         </table:template>
                     </table:Column>
 
-                    <!-- ================= Vendor Name (Header like ProfitCenterName) ================= -->
+                    <!-- ================= Vendor Name ================= -->
                     <table:Column label="Name of Vendor" width="220px">
                         <table:template>
-                            <m:Text
-                                text="{treeData>VendorName}"
-                                visible="{treeData>isHeader}"/>
+                            <m:Text text="{treeData>VendorName}"/>
                         </table:template>
                     </table:Column>
 
@@ -169,21 +182,6 @@
                             <m:Text
                                 text="{path:'treeData>PostingDt', type:'sap.ui.model.odata.type.DateTime', formatOptions:{pattern:'dd.MM.yyyy'}}"
                                 visible="{= !${treeData>isHeader} }"/>
-                        </table:template>
-                    </table:Column>
-
-                    <!-- ================= Invoice Amount (Header + Item) ================= -->
-                    <table:Column label="Invoice Amount" width="130px" hAlign="End">
-                        <table:template>
-                            <m:VBox>
-                                <m:Text
-                                    text="{parts: [{path: 'treeData>TotalInvoiceAmt'}, {path: 'viewState>/showInLakhs'}], formatter: '.formatter.formatCurrency'}"
-                                    visible="{treeData>isHeader}"
-                                    class="sapThemeHighlight-asTextColor"/>
-                                <m:Text
-                                    text="{parts: [{path: 'treeData>InvoiceAmt'}, {path: 'viewState>/showInLakhs'}], formatter: '.formatter.formatCurrency'}"
-                                    visible="{= !${treeData>isHeader} }"/>
-                            </m:VBox>
                         </table:template>
                     </table:Column>
 
@@ -362,6 +360,105 @@
                     <table:Column label="Currency" width="80px">
                         <table:template>
                             <m:Text text="{treeData>Currency}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Company Code (Header) ================= -->
+                    <table:Column label="Company Code" width="120px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>CompanyCode}"
+                                visible="{treeData>isHeader}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Created By (Header) ================= -->
+                    <table:Column label="Created By" width="120px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>CreatedBy}"
+                                visible="{treeData>isHeader}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Creation Time (Header) ================= -->
+                    <table:Column label="Creation Time" width="140px">
+                        <table:template>
+                            <m:Text
+                                text="{path:'treeData>CreatedAt', type:'sap.ui.model.odata.type.DateTime', formatOptions:{pattern:'dd.MM.yyyy HH:mm:ss'}}"
+                                visible="{treeData>isHeader}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Item Count (Header) ================= -->
+                    <table:Column label="Item Count" width="100px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>ItemCount}"
+                                visible="{treeData>isHeader}"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Tax Number (Item) ================= -->
+                    <table:Column label="Tax Number" width="120px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>TaxNum}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Bank Key (Item) ================= -->
+                    <table:Column label="Bank Key" width="100px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>BankKey}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Reference Document (Item) ================= -->
+                    <table:Column label="Reference Document" width="150px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>ReferenceDoc}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= GSTR1 Details (Item) ================= -->
+                    <table:Column label="GSTR1 Details" width="150px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>Gstr1Details}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= General Remark (Item) ================= -->
+                    <table:Column label="General Remark" width="200px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>Remark}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Account Holder (Item) ================= -->
+                    <table:Column label="Account Holder" width="180px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>AccountHolder}"
+                                visible="{= !${treeData>isHeader} }"/>
+                        </table:template>
+                    </table:Column>
+
+                    <!-- ================= Branch (Item) ================= -->
+                    <table:Column label="Branch" width="150px">
+                        <table:template>
+                            <m:Text
+                                text="{treeData>Branch}"
+                                visible="{= !${treeData>isHeader} }"/>
                         </table:template>
                     </table:Column>
 
