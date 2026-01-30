@@ -515,8 +515,180 @@ sap.ui.define([
 
             // Send payload to backend
             console.log("=== CALLING _sendApprovalPayloadToBackend ===");
-            this._sendApprovalPayloadToBackend(aPayloadItems, sActionType, aSelectedItems);
+            //this._sendApprovalPayloadToBackend(aPayloadItems, sActionType, aSelectedItems);
+            this._sendDeepApprovalPayload(aPayloadItems, sActionType);
         },
+_sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
+    var oModel = this.getView().getModel("oModel");
+    
+
+    if (!oModel || !Array.isArray(aPayloadItems) || aPayloadItems.length === 0) {
+        sap.m.MessageToast.show("No data to send");
+        return;
+    }
+
+    /* ================= HELPERS ================= */
+
+    var dec = function (v) {
+        return (v !== undefined && v !== null && v !== "")
+            ? Number(v).toFixed(2)
+            : "0.00";
+    };
+
+    // SAP Gateway Edm.DateTime (V2)
+    var toEdmDateTime = function (v) {
+        if (!v) return null;
+        var d = new Date(v);
+        return isNaN(d.getTime()) ? null : "/Date(" + d.getTime() + ")/";
+    };
+
+    /* ================= HEADER ================= */
+
+    var oFirst = aPayloadItems[0];
+    var sApprovalNo = String(oFirst.ApprovalNo).trim();
+    var sVendorCode = String(oFirst.VendorCode || oFirst.VendorNumber).trim();
+
+    var oDeepPayload = {
+        ApprovalNo: sApprovalNo,
+        CreatedOn: null,
+        ProfitCenter: oFirst.ProfitCenter || "",
+        ProfitCenterName: oFirst.ProfitCenterName || "",
+        VendorCode: sVendorCode,
+        VendorName: oFirst.VendorName || "",
+        CompanyCode: oFirst.CompanyCode || "",
+        CreatedBy: "",
+        CreationTime: "PT00H00M00S",
+
+        OverallStatus: (sActionType === "APPROVE") ? "APPROVED" : "REJECTED",
+
+        GrossAmount: dec(oFirst.GrossAmount),
+        BaseAmount: dec(oFirst.BaseAmount),
+        GSTAmount: dec(oFirst.GSTAmount),
+        TDSAmount: dec(oFirst.TDSAmount),
+        TotalLiability: dec(oFirst.TotalLiability),
+        GST2AReflected: dec(oFirst.GST2AReflected),
+        GST2ANotReflected: dec(oFirst.GST2ANotReflected),
+        AmountClaimed: dec(oFirst.AmountClaimed),
+        ProposedAmount: dec(oFirst.ProposedAmount),
+
+        PMApprovedAmount: dec(oFirst.PMApprovedAmount),
+        HODApprovedAmount: dec(oFirst.HODApprovedAmount),
+        CFOApprovedAmount: dec(oFirst.CFOApprovedAmount),
+        AuditorApprovedAmount: dec(oFirst.AuditorApprovedAmount),
+        DirectorApprovedAmount: dec(oFirst.DirectorApprovedAmount),
+
+        /* ================= ITEMS ================= */
+
+        ToItems: {
+            results: aPayloadItems.map(function (oItem) {
+                return {
+                    ApprovalNo: sApprovalNo,
+                    ProfitCenter: oItem.ProfitCenter || "",
+                    TaxNum: oItem.TaxNum || "",
+                    ProfitCenterName: oItem.PftCenterName || oItem.ProfitCenterName || "",
+                    BankKey: oItem.BankKey || "",
+                    VendorCode: sVendorCode,
+                    VendorName: oItem.VendorName || "",
+                    DocNum: oItem.DocNum || "",
+                    ItemNum: String(oItem.ItemNum),
+                    LiabHead: oItem.LiabHead || "",
+                    ReferenceDoc: oItem.ReferenceDoc || "",
+                    PurchDoc: oItem.PurchDoc || "",
+
+                    DocDate: toEdmDateTime(oItem.DocDate),
+                    PostingDt: toEdmDateTime(oItem.PostingDt),
+
+                    GrossAmt: dec(oItem.GrossAmt),
+                    BaseAmt: dec(oItem.BaseAmt),
+                    GstAmt: dec(oItem.GstAmt),
+                    TdsAmount: dec(oItem.TdsAmount),
+                    TotalLiability: dec(oItem.TotalLiability),
+
+                    Gst2aRef: dec(oItem.Gst2aRef),
+                    Gst2aNref: dec(oItem.Gst2aNref),
+                    AmtClaimed: dec(oItem.AmtClaimed),
+                    AprnoRef: oItem.AprnoRef || "",
+                    ProposedAmt: dec(oItem.ProposedAmt),
+
+                    Currency: oItem.Currency || "",
+                    Gstr1Details: oItem.Gstr1Details || "",
+                    Remark: oItem.Remark || "",
+
+                    AccountHolder: oItem.AccountHolder || "",
+                    AccountNumber: oItem.AccountNumber || "",
+                    BankName: oItem.BankName || "",
+                    Branch: oItem.Branch || "",
+
+                    /* ===== PM ===== */
+                    PmApprAmt: dec(oItem.PmApprAmt),
+                    PmUserId: oItem.PmUserId || "",
+                    PmApprStatus: oItem.PmApprStatus || "",
+                    PmApprOn: toEdmDateTime(oItem.PmApprOn),
+                    PmApprRemarks: oItem.PmApprRemarks || "",
+
+                    /* ===== HOD ===== */
+                    HodApprAmt: dec(oItem.HodApprAmt),
+                    HodUserId: "",
+                    HodApprStatus: "",
+                    HodApprOn: null,
+                    HodApprRemarks: "",
+
+                    /* ===== CFO ===== */
+                    CfoApprAmt: "0.00",
+                    CfoUserId: "",
+                    CfoApprStatus: "",
+                    CfoApprOn: null,
+                    CfoApprRemarks: "",
+
+                    /* ===== AUDITOR ===== */
+                    AudApprAmt: "0.00",
+                    AudUserId: "",
+                    AudApprStatus: "",
+                    AudApprOn: null,
+                    AudApprRemarks: "",
+
+                    /* ===== DIRECTOR ===== */
+                    DirApprAmt: "0.00",
+                    DirUserId: "",
+                    DirApprStatus: "",
+                    DirApprOn: null,
+                    DirApprRemarks: "",
+
+                    ModeOfPayment: "",
+                    UtrNo: "",
+                    PaidAmount1: "0.00",
+                    PaymentDate1: null,
+                    PaidAmount2: "0.00",
+                    PaymentDate2: null,
+                    TotalBalOut: "0.00",
+                    BalancePayable: "0.00"
+                };
+            })
+        }
+    };
+
+    console.log("🚀 FINAL DEEP CREATE PAYLOAD (MATCHED)");
+    console.log(JSON.stringify(oDeepPayload, null, 2));
+
+    sap.ui.core.BusyIndicator.show(0);
+
+    oModel.create("/PaymentHeaderSet", oDeepPayload, {
+        success: function () {
+            sap.ui.core.BusyIndicator.hide();
+            sap.m.MessageToast.show("Approval sent successfully");
+        },
+        error: function (oError) {
+            sap.ui.core.BusyIndicator.hide();
+            console.error("❌ Deep create failed", oError);
+            sap.m.MessageBox.error("Backend update failed");
+        }
+    });
+}
+
+
+,
+
+
 
         _createPayloadItem: function (oItem, sStatus, sDefaultRemarks) {
             console.log("=== _createPayloadItem CALLED ===");
@@ -547,11 +719,14 @@ sap.ui.define([
                 // Key fields (required for OData operations)
                 ApprovalNo: sApprovalNo,
                 VendorCode: sVendorCode,
+
                 VendorNumber: sVendorCode, // Alias for compatibility
 
                 // Other fields
                 ItemNum: (oItem.ItemNum || "").toString(),
                 VendorName: (oItem.VendorName || "").toString(),
+                ProfitCenterName: (oItem.ProfitCenterName || "").toString(),
+                ProfitCenter: (oItem.ProfitCenter || "").toString(),
                 DocNum: (oItem.DocNum || "").toString(),
                 LiabHead: (oItem.LiabHead || "").toString(),
                 PurchDoc: (oItem.PurchDoc || "").toString(),
@@ -1161,8 +1336,74 @@ sap.ui.define([
 
             // Send PUT requests for selected items
             console.log("=== CALLING _processBatchUpdate ===");
-            this._processBatchUpdate(oModel, aPayloadItems, sActionType, aSelectedItems);
+            console.log("=== CALLING DEEP CREATE (SINGLE REQUEST) ===");
+            this._sendDeepCreate(oModel, aPayloadItems, sActionType);
+
+            //this._processBatchUpdate(oModel, aPayloadItems, sActionType, aSelectedItems);
         },
+        _sendDeepCreate: function (oModel, aPayloadItems, sActionType) {
+    sap.ui.core.BusyIndicator.show(0);
+
+    // Build ONE header with ALL items
+    var oPayload = {
+        ApprovalNo: aPayloadItems[0].ApprovalNo,
+        VendorCode: aPayloadItems[0].VendorCode,
+        OverallStatus: sActionType,
+
+        ToItems: {
+            results: aPayloadItems.map(function (item) {
+                return {
+                    ApprovalNo: item.ApprovalNo,
+                    VendorCode: item.VendorCode,
+                    ItemNum: item.ItemNum,
+
+                    // 🔴 DATE FIX (IMPORTANT)
+                    DocDate: item.DocDate ? this._toABAPDate(item.DocDate) : null,
+                    PostingDt: item.PostingDt ? this._toABAPDate(item.PostingDt) : null,
+                    PmApprOn: this._toABAPDateTime(new Date()),
+
+                    PmApprAmt: item.PmApprAmt,
+                    PmApprStatus: item.PmApprStatus,
+                    PmApprRemarks: item.PmApprRemarks,
+                    TdsAmount: item.TdsAmount
+                };
+            }.bind(this))
+        }
+    };
+    console.log("🚀 SENDING DEEP CREATE PAYLOAD:", oPayload);
+
+    oModel.create("/PaymentHeaderSet", oPayload, {
+        success: function () {
+            sap.ui.core.BusyIndicator.hide();
+            MessageToast.show("Deep create successful");
+        },
+        error: function (oError) {
+            sap.ui.core.BusyIndicator.hide();
+            console.error("Deep create failed", oError);
+        }
+    });
+},
+_toABAPDate: function (jsDate) {
+    var d = new Date(jsDate);
+    return (
+        d.getFullYear().toString().padStart(4, "0") +
+        (d.getMonth() + 1).toString().padStart(2, "0") +
+        d.getDate().toString().padStart(2, "0")
+    );
+},
+
+_toABAPDateTime: function (jsDate) {
+    var d = new Date(jsDate);
+    return (
+        d.getFullYear().toString().padStart(4, "0") +
+        (d.getMonth() + 1).toString().padStart(2, "0") +
+        d.getDate().toString().padStart(2, "0") +
+        d.getHours().toString().padStart(2, "0") +
+        d.getMinutes().toString().padStart(2, "0") +
+        d.getSeconds().toString().padStart(2, "0")
+    );
+}
+,
 
         _checkServiceCapabilities: function (oModel) {
             var oMetadata = oModel.getServiceMetadata();
@@ -1251,7 +1492,7 @@ sap.ui.define([
 
             // Process each selected item with PUT call
             console.log("=== CALLING _sendPutRequestsForSelectedItems ===");
-            this._sendPutRequestsForSelectedItems(oModel, aPayloadItems, sActionType, aSelectedItems);
+           // this._sendPutRequestsForSelectedItems(oModel, aPayloadItems, sActionType, aSelectedItems);
         },
 
         _sendPutRequestsForSelectedItems: function (oModel, aPayloadItems, sActionType, aSelectedItems) {
@@ -1292,19 +1533,19 @@ sap.ui.define([
                 var oPayloadItem = aPayloadItems[iIndex];
                 console.log("Current payload item:", oPayloadItem);
 
-                this._sendSinglePutRequest(oModel, oPayloadItem, sCurrentUser, sActionType, iIndex + 1, iTotalCount,
-                    function (bSuccess) {
-                        console.log("PUT request result for item " + (iIndex + 1) + ":", bSuccess ? "SUCCESS" : "FAILED");
-                        if (bSuccess) {
-                            iProcessedCount++;
-                        } else {
-                            aErrors.push({
-                                item: oPayloadItem,
-                                error: "PUT request failed"
-                            });
-                        }
-                        fnProcessNextItem.call(this, iIndex + 1);
-                    }.bind(this));
+                // this._sendSinglePutRequest(oModel, oPayloadItem, sCurrentUser, sActionType, iIndex + 1, iTotalCount,
+                //     function (bSuccess) {
+                //         console.log("PUT request result for item " + (iIndex + 1) + ":", bSuccess ? "SUCCESS" : "FAILED");
+                //         if (bSuccess) {
+                //             iProcessedCount++;
+                //         } else {
+                //             aErrors.push({
+                //                 item: oPayloadItem,
+                //                 error: "PUT request failed"
+                //             });
+                //         }
+                //         fnProcessNextItem.call(this, iIndex + 1);
+                //     }.bind(this));
             }.bind(this);
 
             console.log("=== STARTING ITEM PROCESSING ===");
@@ -1374,6 +1615,8 @@ sap.ui.define([
                             ApprovalNo: sApprovalNo,
                             VendorCode: sVendorCode,
                             VendorName: oPayloadItem.VendorName,
+                            ProfitCenter: oPayloadItem.ProfitCenter,
+                            ProfitCenterName: oPayloadItem.ProfitCenterName,
                             TaxNum: oPayloadItem.TaxNum,
                             BankKey: oPayloadItem.BankKey,
                             DocNum: oPayloadItem.DocNum,
@@ -1450,6 +1693,8 @@ sap.ui.define([
                     ]
                 }
             };
+            console.log("Prepared payload for POST:", oPayload);
+
 
             // 🔴 IMPORTANT:
             // Do NOT send approval fields during POST - remove them from the results array
@@ -2438,13 +2683,14 @@ sap.ui.define([
             oParameters.ItemCount = aPayloadItems.length.toString();
 
             // Add first item details as example (adjust based on your function import parameters)
-            if (aPayloadItems.length > 0) {
-                var oFirstItem = aPayloadItems[0];
-                oParameters.ApprovalNo = oFirstItem.ApprovalNo;
-                oParameters.VendorCode = oFirstItem.VendorCode || oFirstItem.VendorNumber;
-                oParameters.PmApprStatus = oFirstItem.PmApprStatus;
-                oParameters.PmApprRemarks = oFirstItem.PmApprRemarks;
-            }
+                if (aPayloadItems.length > 0) {
+                    var oFirstItem = aPayloadItems[0];
+                    oParameters.ApprovalNo = oFirstItem.ApprovalNo;
+                    oParameters.VendorCode = oFirstItem.VendorCode || oFirstItem.VendorNumber;
+                    oParameters.PmApprStatus = oFirstItem.PmApprStatus;
+                    oParameters.PmApprRemarks = oFirstItem.PmApprRemarks;
+                    oParameters.ProfitCenter = oFirstItem.ProfitCenter;
+                }
 
             console.log("Function import parameters:", oParameters);
 
