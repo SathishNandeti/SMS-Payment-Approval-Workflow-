@@ -8,10 +8,10 @@ sap.ui.define([
 ], function (Controller, JSONModel, MessageToast, ValueState, MessageBox, BusyIndicator) {
     "use strict";
 
-    return Controller.extend("com.incresol.zpaymentworkflow.controller.ProjectManager", {
+    return Controller.extend("com.incresol.zpaymentworkflow.controller.Accountsteam", {
 
         onInit: function () {
-            console.log("ProjectManager controller initialized");
+            console.log("Accountsteam controller initialized");
             
             // Load custom CSS
             this._loadCustomCSS();
@@ -758,7 +758,74 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
                 Branch: (oItem.Branch || "").toString()
             };
 
-        
+            console.log("=== COMPLETE PAYLOAD ITEM CREATED ===");
+            console.log("Payload Item Details:");
+            console.log("  ApprovalNo:", oPayloadItem.ApprovalNo);
+            console.log("  VendorCode:", oPayloadItem.VendorCode);
+            console.log("  ItemNum:", oPayloadItem.ItemNum);
+            console.log("  VendorName:", oPayloadItem.VendorName);
+            console.log("  DocNum:", oPayloadItem.DocNum);
+            console.log("  LiabHead:", oPayloadItem.LiabHead);
+            console.log("  PurchDoc:", oPayloadItem.PurchDoc);
+            console.log("  DocDate:", oPayloadItem.DocDate);
+            console.log("  PostingDt:", oPayloadItem.PostingDt);
+            console.log("  BaseAmt:", oPayloadItem.BaseAmt);
+            console.log("  GstAmt:", oPayloadItem.GstAmt);
+            console.log("  TdsAmount:", oPayloadItem.TdsAmount);
+            console.log("  TotalLiability:", oPayloadItem.TotalLiability);
+            console.log("  AmtClaimed:", oPayloadItem.AmtClaimed);
+            console.log("  PmApprAmt:", oPayloadItem.PmApprAmt);
+            console.log("  PmApprStatus:", oPayloadItem.PmApprStatus);
+            console.log("  PmApprRemarks:", oPayloadItem.PmApprRemarks);
+            console.log("  PmApprOn:", oPayloadItem.PmApprOn);
+            console.log("  PmUserId:", oPayloadItem.PmUserId);
+            console.log("  Currency:", oPayloadItem.Currency);
+            console.log("  AccountNumber:", oPayloadItem.AccountNumber);
+            console.log("  BankName:", oPayloadItem.BankName);
+            console.log("  TaxNum:", oPayloadItem.TaxNum);
+            console.log("  BankKey:", oPayloadItem.BankKey);
+            console.log("  ReferenceDoc:", oPayloadItem.ReferenceDoc);
+            console.log("  Gst2aRef:", oPayloadItem.Gst2aRef);
+            console.log("  Gst2aNref:", oPayloadItem.Gst2aNref);
+            console.log("  AprnoRef:", oPayloadItem.AprnoRef);
+            console.log("  Gstr1Details:", oPayloadItem.Gstr1Details);
+            console.log("  Remark:", oPayloadItem.Remark);
+            console.log("  AccountHolder:", oPayloadItem.AccountHolder);
+            console.log("  Branch:", oPayloadItem.Branch);
+            console.log("=== FULL PAYLOAD ITEM (JSON) ===");
+            console.log(JSON.stringify(oPayloadItem, null, 2));
+            console.log("=== USER REQUESTED PAYLOAD FORMAT ===");
+            console.log("ItemNum:", oPayloadItem.ItemNum);
+            console.log("VendorName:", oPayloadItem.VendorName);
+            console.log("DocNum:", oPayloadItem.DocNum);
+            console.log("LiabHead:", oPayloadItem.LiabHead);
+            console.log("PurchDoc:", oPayloadItem.PurchDoc);
+            console.log("DocDate:", oPayloadItem.DocDate);
+            console.log("PostingDt:", oPayloadItem.PostingDt);
+            console.log("BaseAmt:", oPayloadItem.BaseAmt);
+            console.log("GstAmt:", oPayloadItem.GstAmt);
+            console.log("TdsAmount:", oPayloadItem.TdsAmount);
+            console.log("TotalLiability:", oPayloadItem.TotalLiability);
+            console.log("AmtClaimed:", oPayloadItem.AmtClaimed);
+            console.log("PmApprAmt:", oPayloadItem.PmApprAmt);
+            console.log("PmApprStatus:", oPayloadItem.PmApprStatus);
+            console.log("PmApprRemarks:", oPayloadItem.PmApprRemarks);
+            console.log("PmApprOn:", oPayloadItem.PmApprOn);
+            console.log("PmUserId:", oPayloadItem.PmUserId);
+            console.log("Currency:", oPayloadItem.Currency);
+            console.log("AccountNumber:", oPayloadItem.AccountNumber);
+            console.log("BankName:", oPayloadItem.BankName);
+            console.log("TaxNum:", oPayloadItem.TaxNum);
+            console.log("BankKey:", oPayloadItem.BankKey);
+            console.log("ReferenceDoc:", oPayloadItem.ReferenceDoc);
+            console.log("Gst2aRef:", oPayloadItem.Gst2aRef);
+            console.log("Gst2aNref:", oPayloadItem.Gst2aNref);
+            console.log("AprnoRef:", oPayloadItem.AprnoRef);
+            console.log("Gstr1Details:", oPayloadItem.Gstr1Details);
+            console.log("Remark:", oPayloadItem.Remark);
+            console.log("AccountHolder:", oPayloadItem.AccountHolder);
+            console.log("Branch:", oPayloadItem.Branch);
+            console.log("===============================");
 
             return oPayloadItem;
         },
@@ -789,442 +856,164 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
         },
 
         // Test method to verify payload structure (for debugging)
-        // _testPayloadStructure: function () {
-        //     var oTreeModel = this.getView().getModel("treeData");
-        //     var aTreeData = oTreeModel.getData().treeData;
-
-        //     if (aTreeData.length > 0 && aTreeData[0].children && aTreeData[0].children.length > 0) {
-        //         var oTestItem = aTreeData[0].children[0];
-        //         var oPayloadItem = this._createPayloadItem(oTestItem, "APPROVED", "Test approval");
-
-        //         console.log("=== TEST PAYLOAD STRUCTURE ===");
-        //         console.log("Sample Item:", oTestItem);
-        //         console.log("Generated Payload:", oPayloadItem);
-        //         console.log("OData Path would be:", "/PaymentItemSet(ApprovalNo='" + oPayloadItem.ApprovalNo + "',VendorCode='" + oPayloadItem.VendorCode + "')");
-        //         console.log("Key Fields Check:", {
-        //             ApprovalNo: oPayloadItem.ApprovalNo,
-        //             VendorCode: oPayloadItem.VendorCode,
-        //             Valid: !!(oPayloadItem.ApprovalNo && oPayloadItem.VendorCode)
-        //         });
-        //         console.log("==============================");
-
-        //         return oPayloadItem;
-        //     }
-
-        //     return null;
-        // },
-
-        // // Test method to simulate approval flow (for debugging)
-        // testApprovalFlow: function () {
-        //     console.log("=== TESTING APPROVAL FLOW ===");
-
-        //     var oTreeModel = this.getView().getModel("treeData");
-        //     var aTreeData = oTreeModel.getData().treeData;
-
-        //     if (aTreeData.length > 0 && aTreeData[0].children && aTreeData[0].children.length > 0) {
-        //         var aTestItems = [aTreeData[0].children[0]]; // First child item
-
-        //         console.log("Test items:", aTestItems);
-        //         console.log("Calling _processBulkAction with test data...");
-
-        //         this._processBulkAction(aTestItems, "APPROVE");
-        //     } else {
-        //         console.log("No test data available");
-        //     }
-        // },
-
-        // // Test payload creation without backend call
-        // testPayloadCreation: function () {
-        //     console.log("=== TESTING PAYLOAD CREATION ONLY ===");
-
-        //     var oModel = this.getView().getModel("oModel");
-
-        //     if (!oModel) {
-        //         console.log("OData model not available");
-        //         return null;
-        //     }
-
-        //     // Try to get first item from OData model
-        //     oModel.read("/PaymentItemSet", {
-        //         urlParameters: {
-        //             "$top": "1"
-        //         },
-        //         success: function (oData) {
-        //             if (oData.results && oData.results.length > 0) {
-        //                 var oTestItem = oData.results[0];
-
-        //                 console.log("=== TESTING WITH FIRST AVAILABLE ITEM ===");
-        //                 console.log("Original Item:", oTestItem);
-
-        //                 // Test payload creation for APPROVE
-        //                 console.log("\n=== TESTING APPROVE PAYLOAD ===");
-        //                 var oApprovePayload = this._createPayloadItem(oTestItem, "APPROVED", "Test approval");
-
-        //                 // Test payload creation for REJECT
-        //                 console.log("\n=== TESTING REJECT PAYLOAD ===");
-        //                 var oRejectPayload = this._createPayloadItem(oTestItem, "REJECTED", "Test rejection");
-
-        //                 console.log("=== PAYLOAD CREATION TEST COMPLETE ===");a
-
-        //                 return {
-        //                     originalItem: oTestItem,
-        //                     approvePayload: oApprovePayload,
-        //                     rejectPayload: oRejectPayload
-        //                 };
-        //             } else {
-        //                 console.log("No test data available from backend");
-        //                 return null;
-        //             }
-        //         }.bind(this),
-        //         error: function (oError) {
-        //             console.error("Failed to load test data:", oError);
-        //             return null;
-        //         }
-        //     });
-        // },
-
-        // // Test backend connection without payload
-        // testBackendConnection: function () {
-        //     console.log("=== TESTING BACKEND CONNECTION ===");
-
-        //     var oModel = this.getView().getModel("oModel");
-
-        //     if (!oModel) {
-        //         console.error("❌ OData model not available");
-        //         return;
-        //     }
-
-        //     console.log("✅ OData model available");
-        //     console.log("Service URL:", oModel.sServiceUrl);
-        //     console.log("Metadata loaded:", !!oModel.getServiceMetadata());
-
-        //     // Check what entity sets are available
-        //     this._checkAvailableEntitySets();
-
-        //     // Try a simple read operation to test connection
-        //     console.log("Testing connection with PaymentItemSet read...");
-
-        //     oModel.read("/PaymentItemSet", {
-        //         urlParameters: {
-        //             "$top": "1"
-        //         },
-        //         success: function (oData) {
-        //             console.log("✅ Backend connection successful");
-        //             console.log("Sample data received:", oData);
-        //         },
-        //         error: function (oError) {
-        //             console.error("❌ Backend connection failed");
-        //             console.error("Error:", oError);
-        //         }
-        //     });
-        // },
-
-        // _loadMockData: function () {
-        //     console.log("Loading mock data for testing...");
-
-        //     // Create mock payment items data
-        //     var aMockItems = [
-        //         {
-        //             ApprovalNo: "0000000001",
-        //             VendorCode: "10000001",
-        //             VendorName: "Test Vendor 1",
-        //             ItemNum: "001",
-        //             DocNum: "DOC001",
-        //             LiabHead: "UTILITIES",
-        //             PurchDoc: "PO001",
-        //             DocDate: new Date("2024-01-15"),
-        //             PostingDt: new Date("2024-01-16"),
-        //             BaseAmt: "10000.00",
-        //             GstAmt: "1800.00",
-        //             TdsAmount: "200.00",
-        //             TotalLiability: "11600.00",
-        //             AmtClaimed: "11600.00",
-        //             PmApprAmt: "0.00",
-        //             PmApprStatus: "PENDING",
-        //             PmApprRemarks: "",
-        //             Currency: "INR",
-        //             BankName: "Test Bank 1",
-        //             AccountNumber: "123456789",
-        //             Gst2aRef: "1800.00",
-        //             Gst2aNref: "0.00",
-        //             AprnoRef: "",
-        //             ProposedAmt: "11600.00"
-        //         },
-        //         {
-        //             ApprovalNo: "0000000001",
-        //             VendorCode: "10000002",
-        //             VendorName: "Test Vendor 2",
-        //             ItemNum: "002",
-        //             DocNum: "DOC002",
-        //             LiabHead: "MAINTENANCE",
-        //             PurchDoc: "PO002",
-        //             DocDate: new Date("2024-01-17"),
-        //             PostingDt: new Date("2024-01-18"),
-        //             BaseAmt: "15000.00",
-        //             GstAmt: "2700.00",
-        //             TdsAmount: "300.00",
-        //             TotalLiability: "17400.00",
-        //             AmtClaimed: "17400.00",
-        //             PmApprAmt: "0.00",
-        //             PmApprStatus: "PENDING",
-        //             PmApprRemarks: "",
-        //             Currency: "INR",
-        //             BankName: "Test Bank 2",
-        //             AccountNumber: "987654321",
-        //             Gst2aRef: "2700.00",
-        //             Gst2aNref: "0.00",
-        //             AprnoRef: "",
-        //             ProposedAmt: "17400.00"
-        //         },
-        //         {
-        //             ApprovalNo: "0000000002",
-        //             VendorCode: "10000003",
-        //             VendorName: "Test Vendor 3",
-        //             ItemNum: "001",
-        //             DocNum: "DOC003",
-        //             LiabHead: "SUPPLIES",
-        //             PurchDoc: "PO003",
-        //             DocDate: new Date("2024-01-20"),
-        //             PostingDt: new Date("2024-01-21"),
-        //             BaseAmt: "8000.00",
-        //             GstAmt: "1440.00",
-        //             TdsAmount: "160.00",
-        //             TotalLiability: "9280.00",
-        //             AmtClaimed: "9280.00",
-        //             PmApprAmt: "0.00",
-        //             PmApprStatus: "PENDING",
-        //             PmApprRemarks: "",
-        //             Currency: "INR",
-        //             BankName: "Test Bank 3",
-        //             AccountNumber: "456789123",
-        //             Gst2aRef: "1440.00",
-        //             Gst2aNref: "0.00",
-        //             AprnoRef: "",
-        //             ProposedAmt: "9280.00"
-        //         }
-        //     ];
-
-        //     console.log("Mock data created:", aMockItems.length, "items");
-
-        //     // Create the items model with mock data
-        //     var oItemsModel = new JSONModel({
-        //         items: aMockItems
-        //     });
-        //     this.getView().setModel(oItemsModel, "itemsModel");
-
-        //     MessageToast.show("Loaded " + aMockItems.length + " mock payment items for testing");
-        //     console.log("Mock data loaded successfully");
-        // },
-        // // Manual function to test service connection
-        // testServiceConnection: function () {
-        //     console.log("=== MANUAL SERVICE CONNECTION TEST ===");
-
-        //     var oModel = this.getView().getModel("oModel");
-
-        //     if (!oModel) {
-        //         console.error("❌ OData model not available");
-        //         MessageToast.show("OData model not available");
-        //         return;
-        //     }
-
-        //     console.log("Service URL:", oModel.sServiceUrl);
-        //     console.log("Full URL:", window.location.origin + oModel.sServiceUrl);
-
-        //     // Test metadata first
-        //     console.log("Testing metadata...");
-        //     var oMetadata = oModel.getServiceMetadata();
-        //     console.log("Metadata available:", !!oMetadata);
-
-        //     if (!oMetadata) {
-        //         console.log("Forcing metadata load...");
-        //         oModel.refreshMetadata();
-
-        //         setTimeout(function () {
-        //             var oNewMetadata = oModel.getServiceMetadata();
-        //             console.log("Metadata after refresh:", !!oNewMetadata);
-
-        //             if (!oNewMetadata) {
-        //                 console.log("❌ Metadata still not available, service might be down");
-        //                 MessageToast.show("Service appears to be unavailable");
-        //             } else {
-        //                 console.log("✅ Metadata loaded, trying data...");
-        //                 this._loadPaymentData();
-        //             }
-        //         }.bind(this), 3000);
-        //     } else {
-        //         console.log("✅ Metadata available, trying data...");
-        //         this._loadPaymentData();
-        //     }
-        // },
-
-        // // Force load mock data for testing
-        // loadMockData: function () {
-        //     console.log("=== FORCING MOCK DATA LOAD ===");
-        //     this._loadMockData();
-        // },
-
-        // testDataAvailability: function () {
-        //     console.log("=== TESTING DATA AVAILABILITY ===");
-
-        //     var oModel = this.getView().getModel("oModel");
-
-        //     if (!oModel) {
-        //         console.error("❌ OData model not available");
-        //         return;
-        //     }
-
-        //     // Check metadata first
-        //     this._checkAvailableEntitySets();
-
-        //     // Test all possible entity sets
-        //     var aEntitySetsToTest = [
-        //         "/PaymentItemSet",
-        //         "/PaymentHeaderSet",
-        //         "/$metadata"
-        //     ];
-
-        //     aEntitySetsToTest.forEach(function (sEntitySet) {
-        //         console.log("Testing: " + sEntitySet);
-
-        //         if (sEntitySet === "/$metadata") {
-        //             // Special handling for metadata
-        //             var oMetadata = oModel.getServiceMetadata();
-        //             console.log("  Metadata available:", !!oMetadata);
-        //             return;
-        //         }
-
-        //         oModel.read(sEntitySet, {
-        //             urlParameters: {
-        //                 "$top": "3"
-        //             },
-        //             success: function (oData) {
-        //                 console.log("  ✅ " + sEntitySet + " - Success");
-        //                 console.log("    Count:", oData.results ? oData.results.length : 0);
-        //                 if (oData.results && oData.results.length > 0) {
-        //                     console.log("    Sample:", oData.results[0]);
-        //                 }
-        //             },
-        //             error: function (oError) {
-        //                 console.error("  ❌ " + sEntitySet + " - Failed:", oError.message);
-        //             }
-        //         });
-        //     });
-
-        //     console.log("=================================");
-        // },
-
-        _checkAvailableEntitySets: function () {
-            var oModel = this.getView().getModel("oModel");
-            var oMetadata = oModel.getServiceMetadata();
-
-            console.log("=== AVAILABLE ENTITY SETS ===");
-
-            if (oMetadata && oMetadata.dataServices && oMetadata.dataServices.schema) {
-                oMetadata.dataServices.schema.forEach(function (oSchema) {
-                    if (oSchema.entityContainer && oSchema.entityContainer[0] && oSchema.entityContainer[0].entitySet) {
-                        console.log("Entity Sets found:");
-                        oSchema.entityContainer[0].entitySet.forEach(function (oEntitySet) {
-                            console.log("  - " + oEntitySet.name + " (Type: " + oEntitySet.entityType + ")");
-                        });
-                    }
-                });
-            } else {
-                console.log("No metadata available or metadata structure unexpected");
-            }
-
-            console.log("===============================");
-        },
-
-        // Debug method to check data structure
-        _debugDataStructure: function () {
+        _testPayloadStructure: function () {
             var oTreeModel = this.getView().getModel("treeData");
             var aTreeData = oTreeModel.getData().treeData;
 
-            console.log("=== DATA STRUCTURE DEBUG ===");
-            console.log("Tree Data Count:", aTreeData.length);
+            if (aTreeData.length > 0 && aTreeData[0].children && aTreeData[0].children.length > 0) {
+                var oTestItem = aTreeData[0].children[0];
+                var oPayloadItem = this._createPayloadItem(oTestItem, "APPROVED", "Test approval");
 
-            if (aTreeData.length > 0) {
-                var oFirstHeader = aTreeData[0];
-                console.log("First Header:", {
-                    ApprovalNo: oFirstHeader.ApprovalNo,
-                    VendorCode: oFirstHeader.VendorCode,
-                    VendorName: oFirstHeader.VendorName,
-                    ChildrenCount: oFirstHeader.children ? oFirstHeader.children.length : 0
+                console.log("=== TEST PAYLOAD STRUCTURE ===");
+                console.log("Sample Item:", oTestItem);
+                console.log("Generated Payload:", oPayloadItem);
+                console.log("OData Path would be:", "/PaymentItemSet(ApprovalNo='" + oPayloadItem.ApprovalNo + "',VendorCode='" + oPayloadItem.VendorCode + "')");
+                console.log("Key Fields Check:", {
+                    ApprovalNo: oPayloadItem.ApprovalNo,
+                    VendorCode: oPayloadItem.VendorCode,
+                    Valid: !!(oPayloadItem.ApprovalNo && oPayloadItem.VendorCode)
                 });
+                console.log("==============================");
 
-                if (oFirstHeader.children && oFirstHeader.children.length > 0) {
-                    var oFirstChild = oFirstHeader.children[0];
-                    console.log("First Child Item:", {
-                        ApprovalNo: oFirstChild.ApprovalNo,
-                        VendorCode: oFirstChild.VendorCode,
-                        VendorNumber: oFirstChild.VendorNumber,
-                        VendorName: oFirstChild.VendorName,
-                        ItemNum: oFirstChild.ItemNum,
-                        AllKeys: Object.keys(oFirstChild).filter(key => key.toLowerCase().includes('vendor'))
-                    });
-                }
+                return oPayloadItem;
             }
-            console.log("============================");
+
+            return null;
         },
 
-        // Comprehensive debug function to trace the entire approval flow
-        debugApprovalFlow: function () {
-            console.log("=== COMPREHENSIVE APPROVAL FLOW DEBUG ===");
+        // Test method to simulate approval flow (for debugging)
+        testApprovalFlow: function () {
+            console.log("=== TESTING APPROVAL FLOW ===");
 
-            // 1. Check if OData model is available
-            var oModel = this.getView().getModel("oModel");
-            console.log("1. OData Model Available:", !!oModel);
-            if (oModel) {
-                console.log("   Service URL:", oModel.sServiceUrl);
-                console.log("   Metadata Loaded:", !!oModel.getServiceMetadata());
+            var oTreeModel = this.getView().getModel("treeData");
+            var aTreeData = oTreeModel.getData().treeData;
+
+            if (aTreeData.length > 0 && aTreeData[0].children && aTreeData[0].children.length > 0) {
+                var aTestItems = [aTreeData[0].children[0]]; // First child item
+
+                console.log("Test items:", aTestItems);
+                console.log("Calling _processBulkAction with test data...");
+
+                this._processBulkAction(aTestItems, "APPROVE");
+            } else {
+                console.log("No test data available");
             }
-
-            // 2. Check table selection
-            var oTable = this.byId("idPaymentTable");
-            var aSelectedItems = oTable ? oTable.getSelectedItems() : [];
-            console.log("2. Table Selection:");
-            console.log("   Table Available:", !!oTable);
-            console.log("   Selected Items:", aSelectedItems.length);
-
-            // 3. Test data availability
-            if (oModel) {
-                console.log("3. Testing Data Availability:");
-                oModel.read("/PaymentItemSet", {
-                    urlParameters: {
-                        "$top": "1"
-                    },
-                    success: function (oData) {
-                        console.log("   Data Available:", oData.results && oData.results.length > 0);
-                        if (oData.results && oData.results.length > 0) {
-                            console.log("   Sample Item:", oData.results[0]);
-
-                            // Test payload creation
-                            var oPayload = this._createPayloadItem(oData.results[0], "APPROVED", "Test");
-                            console.log("   Payload Creation Success:", !!oPayload);
-                            console.log("   Key Fields Valid:", !!(oPayload.ApprovalNo && oPayload.VendorCode));
-                        }
-                    }.bind(this),
-                    error: function (oError) {
-                        console.error("   Data Load Failed:", oError);
-                    }
-                });
-            }
-
-            // 4. Check dialog state
-            console.log("4. Dialog State:");
-            console.log("   Dialog Created:", !!this._oApprovalDialog);
-            console.log("   Stored Selected Items:", this._aDialogSelectedItems ? this._aDialogSelectedItems.length : 0);
-            console.log("   Stored Action Type:", this._sDialogActionType);
-
-            console.log("==========================================");
-
-            return {
-                modelAvailable: !!oModel,
-                tableAvailable: !!oTable,
-                selectedCount: aSelectedItems.length,
-                dialogCreated: !!this._oApprovalDialog
-            };
         },
+
+       
+
+        // _checkAvailableEntitySets: function () {
+        //     var oModel = this.getView().getModel("oModel");
+        //     var oMetadata = oModel.getServiceMetadata();
+
+        //     console.log("=== AVAILABLE ENTITY SETS ===");
+
+        //     if (oMetadata && oMetadata.dataServices && oMetadata.dataServices.schema) {
+        //         oMetadata.dataServices.schema.forEach(function (oSchema) {
+        //             if (oSchema.entityContainer && oSchema.entityContainer[0] && oSchema.entityContainer[0].entitySet) {
+        //                 console.log("Entity Sets found:");
+        //                 oSchema.entityContainer[0].entitySet.forEach(function (oEntitySet) {
+        //                     console.log("  - " + oEntitySet.name + " (Type: " + oEntitySet.entityType + ")");
+        //                 });
+        //             }
+        //         });
+        //     } else {
+        //         console.log("No metadata available or metadata structure unexpected");
+        //     }
+
+        //     console.log("===============================");
+        // },
+
+        // // Debug method to check data structure
+        // _debugDataStructure: function () {
+        //     var oTreeModel = this.getView().getModel("treeData");
+        //     var aTreeData = oTreeModel.getData().treeData;
+
+        //     console.log("=== DATA STRUCTURE DEBUG ===");
+        //     console.log("Tree Data Count:", aTreeData.length);
+
+        //     if (aTreeData.length > 0) {
+        //         var oFirstHeader = aTreeData[0];
+        //         console.log("First Header:", {
+        //             ApprovalNo: oFirstHeader.ApprovalNo,
+        //             VendorCode: oFirstHeader.VendorCode,
+        //             VendorName: oFirstHeader.VendorName,
+        //             ChildrenCount: oFirstHeader.children ? oFirstHeader.children.length : 0
+        //         });
+
+        //         if (oFirstHeader.children && oFirstHeader.children.length > 0) {
+        //             var oFirstChild = oFirstHeader.children[0];
+        //             console.log("First Child Item:", {
+        //                 ApprovalNo: oFirstChild.ApprovalNo,
+        //                 VendorCode: oFirstChild.VendorCode,
+        //                 VendorNumber: oFirstChild.VendorNumber,
+        //                 VendorName: oFirstChild.VendorName,
+        //                 ItemNum: oFirstChild.ItemNum,
+        //                 AllKeys: Object.keys(oFirstChild).filter(key => key.toLowerCase().includes('vendor'))
+        //             });
+        //         }
+        //     }
+        //     console.log("============================");
+        // },
+
+        // // Comprehensive debug function to trace the entire approval flow
+        // debugApprovalFlow: function () {
+        //     console.log("=== COMPREHENSIVE APPROVAL FLOW DEBUG ===");
+
+        //     // 1. Check if OData model is available
+        //     var oModel = this.getView().getModel("oModel");
+        //     console.log("1. OData Model Available:", !!oModel);
+        //     if (oModel) {
+        //         console.log("   Service URL:", oModel.sServiceUrl);
+        //         console.log("   Metadata Loaded:", !!oModel.getServiceMetadata());
+        //     }
+
+        //     // 2. Check table selection
+        //     var oTable = this.byId("idPaymentTable");
+        //     var aSelectedItems = oTable ? oTable.getSelectedItems() : [];
+        //     console.log("2. Table Selection:");
+        //     console.log("   Table Available:", !!oTable);
+        //     console.log("   Selected Items:", aSelectedItems.length);
+
+        //     // 3. Test data availability
+        //     if (oModel) {
+        //         console.log("3. Testing Data Availability:");
+        //         oModel.read("/PaymentItemSet", {
+        //             urlParameters: {
+        //                 "$top": "1"
+        //             },
+        //             success: function (oData) {
+        //                 console.log("   Data Available:", oData.results && oData.results.length > 0);
+        //                 if (oData.results && oData.results.length > 0) {
+        //                     console.log("   Sample Item:", oData.results[0]);
+
+        //                     // Test payload creation
+        //                     var oPayload = this._createPayloadItem(oData.results[0], "APPROVED", "Test");
+        //                     console.log("   Payload Creation Success:", !!oPayload);
+        //                     console.log("   Key Fields Valid:", !!(oPayload.ApprovalNo && oPayload.VendorCode));
+        //                 }
+        //             }.bind(this),
+        //             error: function (oError) {
+        //                 console.error("   Data Load Failed:", oError);
+        //             }
+        //         });
+        //     }
+
+        //     // 4. Check dialog state
+        //     console.log("4. Dialog State:");
+        //     console.log("   Dialog Created:", !!this._oApprovalDialog);
+        //     console.log("   Stored Selected Items:", this._aDialogSelectedItems ? this._aDialogSelectedItems.length : 0);
+        //     console.log("   Stored Action Type:", this._sDialogActionType);
+
+        //     console.log("==========================================");
+
+        //     return {
+        //         modelAvailable: !!oModel,
+        //         tableAvailable: !!oTable,
+        //         selectedCount: aSelectedItems.length,
+        //         dialogCreated: !!this._oApprovalDialog
+        //     };
+        // },
 
         _findHeaderInTreeData: function (aTreeData, sApprovalNo) {
             return aTreeData.find(function (oHeader) {
@@ -1338,66 +1127,66 @@ _toABAPDateTime: function (jsDate) {
 }
 ,
 
-        _checkServiceCapabilities: function (oModel) {
-            var oMetadata = oModel.getServiceMetadata();
+        // _checkServiceCapabilities: function (oModel) {
+        //     var oMetadata = oModel.getServiceMetadata();
 
-            console.log("=== SERVICE CAPABILITIES CHECK ===");
+        //     console.log("=== SERVICE CAPABILITIES CHECK ===");
 
-            if (!oMetadata) {
-                console.log("No metadata available");
-                return;
-            }
+        //     if (!oMetadata) {
+        //         console.log("No metadata available");
+        //         return;
+        //     }
 
-            // Check entity sets and their capabilities
-            if (oMetadata.dataServices && oMetadata.dataServices.schema) {
-                oMetadata.dataServices.schema.forEach(function (oSchema) {
-                    if (oSchema.entityContainer && oSchema.entityContainer[0]) {
-                        var oContainer = oSchema.entityContainer[0];
+        //     // Check entity sets and their capabilities
+        //     if (oMetadata.dataServices && oMetadata.dataServices.schema) {
+        //         oMetadata.dataServices.schema.forEach(function (oSchema) {
+        //             if (oSchema.entityContainer && oSchema.entityContainer[0]) {
+        //                 var oContainer = oSchema.entityContainer[0];
 
-                        // Check entity sets
-                        if (oContainer.entitySet) {
-                            console.log("Available Entity Sets:");
-                            oContainer.entitySet.forEach(function (oEntitySet) {
-                                console.log("  - " + oEntitySet.name + " (" + oEntitySet.entityType + ")");
-                                console.log("    Creatable:", oEntitySet.creatable !== "false");
-                                console.log("    Updatable:", oEntitySet.updatable !== "false");
-                                console.log("    Deletable:", oEntitySet.deletable !== "false");
-                            });
-                        }
+        //                 // Check entity sets
+        //                 if (oContainer.entitySet) {
+        //                     console.log("Available Entity Sets:");
+        //                     oContainer.entitySet.forEach(function (oEntitySet) {
+        //                         console.log("  - " + oEntitySet.name + " (" + oEntitySet.entityType + ")");
+        //                         console.log("    Creatable:", oEntitySet.creatable !== "false");
+        //                         console.log("    Updatable:", oEntitySet.updatable !== "false");
+        //                         console.log("    Deletable:", oEntitySet.deletable !== "false");
+        //                     });
+        //                 }
 
-                        // Check function imports
-                        if (oContainer.functionImport) {
-                            console.log("Available Function Imports:");
-                            oContainer.functionImport.forEach(function (oFunc) {
-                                console.log("  - " + oFunc.name + " (HTTP Method: " + (oFunc.httpMethod || "POST") + ")");
-                                if (oFunc.parameter) {
-                                    console.log("    Parameters:", oFunc.parameter.map(function (p) { return p.name; }));
-                                }
-                            });
-                        }
-                    }
+        //                 // Check function imports
+        //                 if (oContainer.functionImport) {
+        //                     console.log("Available Function Imports:");
+        //                     oContainer.functionImport.forEach(function (oFunc) {
+        //                         console.log("  - " + oFunc.name + " (HTTP Method: " + (oFunc.httpMethod || "POST") + ")");
+        //                         if (oFunc.parameter) {
+        //                             console.log("    Parameters:", oFunc.parameter.map(function (p) { return p.name; }));
+        //                         }
+        //                     });
+        //                 }
+        //             }
 
-                    // Check entity types
-                    if (oSchema.entityType) {
-                        console.log("Entity Types:");
-                        oSchema.entityType.forEach(function (oEntityType) {
-                            if (oEntityType.name === "PaymentItem") {
-                                console.log("  PaymentItem properties:");
-                                if (oEntityType.property) {
-                                    oEntityType.property.forEach(function (oProp) {
-                                        console.log("    - " + oProp.name + " (" + oProp.type + ") " +
-                                            "Creatable: " + (oProp.creatable !== "false") + ", " +
-                                            "Updatable: " + (oProp.updatable !== "false"));
-                                    });
-                                }
-                            }
-                        });
-                    }
-                });
-            }
+        //             // Check entity types
+        //             if (oSchema.entityType) {
+        //                 console.log("Entity Types:");
+        //                 oSchema.entityType.forEach(function (oEntityType) {
+        //                     if (oEntityType.name === "PaymentItem") {
+        //                         console.log("  PaymentItem properties:");
+        //                         if (oEntityType.property) {
+        //                             oEntityType.property.forEach(function (oProp) {
+        //                                 console.log("    - " + oProp.name + " (" + oProp.type + ") " +
+        //                                     "Creatable: " + (oProp.creatable !== "false") + ", " +
+        //                                     "Updatable: " + (oProp.updatable !== "false"));
+        //                             });
+        //                         }
+        //                     }
+        //                 });
+        //             }
+        //         });
+        //     }
 
-            console.log("==================================");
-        },
+        //     console.log("==================================");
+        // },
 
         _logCurlCommand: function (oBatchCallDetails) {
             var sCurlCommand = "curl -X POST '" + oBatchCallDetails.url + "' \\\n";
@@ -1629,7 +1418,7 @@ _toABAPDateTime: function (jsDate) {
             console.log("Prepared payload for POST:", oPayload);
 
 
-            // 🔴 IMPORTANT:
+            //  IMPORTANT:
             // Do NOT send approval fields during POST - remove them from the results array
             if (oPayload.ToItems && oPayload.ToItems.results && oPayload.ToItems.results.length > 0) {
                 delete oPayload.ToItems.results[0].PmApprStatus;
@@ -2159,48 +1948,48 @@ _toABAPDateTime: function (jsDate) {
             this._getRawMetadata(oModel);
         },
 
-        _getRawMetadata: function (oModel) {
-            var sServiceUrl = oModel.sServiceUrl || "";
-            var sMetadataUrl = sServiceUrl + "/$metadata";
+        // _getRawMetadata: function (oModel) {
+        //     var sServiceUrl = oModel.sServiceUrl || "";
+        //     var sMetadataUrl = sServiceUrl + "/$metadata";
 
-            console.log("=== RAW METADATA ANALYSIS ===");
-            console.log("Fetching metadata from:", sMetadataUrl);
+        //     console.log("=== RAW METADATA ANALYSIS ===");
+        //     console.log("Fetching metadata from:", sMetadataUrl);
 
-            jQuery.ajax({
-                url: sMetadataUrl,
-                type: "GET",
-                dataType: "xml",
-                success: function (oXmlData) {
-                    console.log("Raw metadata XML received");
+        //     jQuery.ajax({
+        //         url: sMetadataUrl,
+        //         type: "GET",
+        //         dataType: "xml",
+        //         success: function (oXmlData) {
+        //             console.log("Raw metadata XML received");
 
-                    // Parse XML to find PaymentItem key structure
-                    var $xml = jQuery(oXmlData);
-                    var $paymentItemType = $xml.find('EntityType[Name="PaymentItem"]');
+        //             // Parse XML to find PaymentItem key structure
+        //             var $xml = jQuery(oXmlData);
+        //             var $paymentItemType = $xml.find('EntityType[Name="PaymentItem"]');
 
-                    if ($paymentItemType.length > 0) {
-                        console.log("PaymentItem EntityType found in XML:");
+        //             if ($paymentItemType.length > 0) {
+        //                 console.log("PaymentItem EntityType found in XML:");
 
-                        var $keys = $paymentItemType.find('Key PropertyRef');
-                        console.log("Key properties from XML:");
-                        $keys.each(function () {
-                            console.log("  - " + jQuery(this).attr('Name'));
-                        });
+        //                 var $keys = $paymentItemType.find('Key PropertyRef');
+        //                 console.log("Key properties from XML:");
+        //                 $keys.each(function () {
+        //                     console.log("  - " + jQuery(this).attr('Name'));
+        //                 });
 
-                        var $properties = $paymentItemType.find('Property');
-                        console.log("All properties from XML:");
-                        $properties.each(function () {
-                            var $prop = jQuery(this);
-                            console.log("  - " + $prop.attr('Name') + " (" + $prop.attr('Type') + ")");
-                        });
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log("Failed to fetch raw metadata:", textStatus, errorThrown);
-                }
-            });
+        //                 var $properties = $paymentItemType.find('Property');
+        //                 console.log("All properties from XML:");
+        //                 $properties.each(function () {
+        //                     var $prop = jQuery(this);
+        //                     console.log("  - " + $prop.attr('Name') + " (" + $prop.attr('Type') + ")");
+        //                 });
+        //             }
+        //         },
+        //         error: function (jqXHR, textStatus, errorThrown) {
+        //             console.log("Failed to fetch raw metadata:", textStatus, errorThrown);
+        //         }
+        //     });
 
-            console.log("=============================");
-        },
+        //     console.log("=============================");
+        // },
 
         _tryKeyVariations: function (oModel, aKeyVariations, oUpdateData, iItemNumber, iKeyIndex, fnCallback) {
             if (iKeyIndex >= aKeyVariations.length) {

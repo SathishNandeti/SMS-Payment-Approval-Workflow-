@@ -1,5 +1,5 @@
 <mvc:View
-    controllerName="com.incresol.zpaymentworkflow.controller.ProjectManager"
+    controllerName="com.incresol.zpaymentworkflow.controller.Accountsteam"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:table="sap.ui.table"
     xmlns:m="sap.m"
@@ -12,9 +12,8 @@
         <!-- ================= TITLE ================= -->
         <f:title>
             <f:DynamicPageTitle>
-            
                 <f:heading>
-                    <m:Title text="Project Manager Approvals" />
+                    <m:Title text="Account Approvals" />
                 </f:heading>
             </f:DynamicPageTitle>
         </f:title>
