@@ -12,7 +12,6 @@
         <!-- ================= TITLE ================= -->
         <f:title>
             <f:DynamicPageTitle>
-            
                 <f:heading>
                     <m:Title text="Project Manager Approvals" />
                 </f:heading>
@@ -74,6 +73,14 @@
                             class="rejectButton"
                             tooltip="Reject selected items"
                         />
+
+                        <m:Button
+                            icon="sap-icon://action-settings"
+                            text="Columns"
+                            type="Transparent"
+                            press="onOpenColumnSettings"
+                            tooltip="Choose columns"
+                        />
                     </m:HBox>
                 </m:Toolbar>
 
@@ -86,11 +93,10 @@
                     rowSelectionChange="onTreeTableRowSelectionChange"
                     fixedColumnCount="4"
                     enableBusyIndicator="true"
-                    width="100%"
-                    class="sapUiSizeCompact"
                 >
                     <!-- ================= Approval Note No ================= -->
                     <table:Column
+                        id="idColApprovalNoteNo"
                         label="Approval Note No"
                         width="120px"
                     >
@@ -105,6 +111,7 @@
 
                     <!-- ================= Created On (Header) ================= -->
                     <table:Column
+                        id="colDate"
                         label="Date of Approval Note"
                         width="140px"
                     >
@@ -118,6 +125,7 @@
 
                     <!-- ================= Profit Center (Header) ================= -->
                     <table:Column
+                        id="colProfitCenter"
                         label="Profit Center"
                         width="100px"
                     >
@@ -131,6 +139,7 @@
 
                     <!-- ================= Profit Center Name (Header) ================= -->
                     <table:Column
+                        id="colProfitCente"
                         label="Profit Center Name"
                         width="150px"
                     >
@@ -144,6 +153,7 @@
 
                     <!-- ================= Vendor Code ================= -->
                     <table:Column
+                        id="colVendorCode"
                         label="Vendor Code"
                         width="120px"
                     >
@@ -154,6 +164,7 @@
 
                     <!-- ================= Vendor Name ================= -->
                     <table:Column
+                        id="colVendorName"
                         label="Name of Vendor"
                         width="220px"
                     >
@@ -164,6 +175,7 @@
 
                     <!-- ================= Liability Head (Item) ================= -->
                     <table:Column
+                        id="colLiabilityHead"
                         label="Liability Head (Dropdown)"
                         width="180px"
                     >
@@ -177,6 +189,7 @@
 
                     <!-- ================= Invoice Number (Item) ================= -->
                     <table:Column
+                        id="colInvoiceNo"
                         label="Invoice No."
                         width="120px"
                     >
@@ -190,6 +203,7 @@
 
                     <!-- ================= Purchase Order (Item) ================= -->
                     <table:Column
+                        id="colPurchaseOrder"
                         label="Purchase Order"
                         width="120px"
                     >
@@ -203,6 +217,7 @@
 
                     <!-- ================= Document Number (Item) ================= -->
                     <table:Column
+                        id="colDocumentNumber"
                         label="Document Number"
                         width="120px"
                     >
@@ -216,6 +231,7 @@
 
                     <!-- ================= Document Date (Item) ================= -->
                     <table:Column
+                        id="colDocumentDate"
                         label="Document Date"
                         width="120px"
                     >
@@ -229,6 +245,7 @@
 
                     <!-- ================= Posting Date (Item) ================= -->
                     <table:Column
+                        id="colPostingDate"
                         label="Posting Date"
                         width="120px"
                     >
@@ -242,6 +259,7 @@
 
                     <!-- ================= Gross Amount (Header + Item) ================= -->
                     <table:Column
+                        id="colGrossAmt"
                         label="Gross Amount"
                         width="130px"
                         hAlign="End"
@@ -263,6 +281,7 @@
 
                     <!-- ================= GST Amount (Header + Item) ================= -->
                     <table:Column
+                        id="colGST"
                         label="GST Amount"
                         width="130px"
                         hAlign="End"
@@ -284,6 +303,7 @@
 
                     <!-- ================= TDS Amount (Header + Item) ================= -->
                     <table:Column
+                        id="colTDS"
                         label="TDS Amount"
                         width="200px"
                         hAlign="End"
@@ -303,7 +323,6 @@
                                     placeholder="0.00"
                                     textAlign="End"
                                     change="onTdsAmountChange"
-                                    
                                 />
                             </m:VBox>
                         </table:template>
@@ -311,6 +330,7 @@
 
                     <!-- ================= Total Liability (Header + Item) ================= -->
                     <table:Column
+                        id="colTotalLiability"
                         label="Total Liability"
                         width="130px"
                         hAlign="End"
@@ -324,6 +344,7 @@
 
                     <!-- ================= Amount Claimed (Header + Item) ================= -->
                     <table:Column
+                        id="colAmtClaimed"
                         label="Amount Claimed"
                         width="130px"
                         hAlign="End"
@@ -345,6 +366,7 @@
 
                     <!-- ================= GST Amount reflected in GSTR 2A ================= -->
                     <table:Column
+                        id="colGst2aRef"
                         label="GST Amount reflected in GSTR 2A"
                         width="150px"
                         hAlign="End"
@@ -359,6 +381,7 @@
 
                     <!-- ================= GST Amount not reflected in GSTR 2A ================= -->
                     <table:Column
+                        id="colGst2aNref"
                         label="GST Amount not reflected in GSTR 2A"
                         width="150px"
                         hAlign="End"
@@ -373,6 +396,7 @@
 
                     <!-- ================= Amount already claimed in approval notes ================= -->
                     <table:Column
+                        id="colAmtAlreadyClaimed"
                         label="Amount already claimed in approval notes"
                         width="180px"
                         hAlign="End"
@@ -387,6 +411,7 @@
 
                     <!-- ================= Approval notes Pr. Ref ================= -->
                     <table:Column
+                        id="colAprnoRef"
                         label="Approval notes Pr. Ref"
                         width="150px"
                     >
@@ -400,6 +425,7 @@
 
                     <!-- ================= Amount proposed to be paid ================= -->
                     <table:Column
+                        id="colAmtProposed"
                         label="Amount proposed to be paid"
                         width="150px"
                         hAlign="End"
@@ -414,6 +440,7 @@
 
                     <!-- ================= Amount approved by Project Manager ================= -->
                     <table:Column
+                        id="colPmApprAmt"
                         label="Amount approved by Project Manager"
                         width="200px"
                         hAlign="End"
@@ -426,13 +453,13 @@
                                 placeholder="0.00"
                                 textAlign="End"
                                 change="onPmApprAmountChange"
-                                
                             />
                         </table:template>
                     </table:Column>
 
                     <!-- ================= PM Status (Header=OverallStatus, Item=PmApprStatus) ================= -->
                     <table:Column
+                        id="colPmStatus"
                         label="PM Status"
                         width="120px"
                     >
@@ -446,6 +473,7 @@
 
                     <!-- ================= PM Remark (Item) ================= -->
                     <table:Column
+                        id="colPmRemark"
                         label="PM Remark"
                         width="200px"
                     >
@@ -462,6 +490,7 @@
 
                     <!-- ================= Bank Name (Item) ================= -->
                     <table:Column
+                        id="colBankName"
                         label="Bank Name"
                         width="200px"
                     >
@@ -475,6 +504,7 @@
 
                     <!-- ================= Account Number (Item) ================= -->
                     <table:Column
+                        id="colAccountNumber"
                         label="Account Number"
                         width="160px"
                     >
@@ -488,6 +518,7 @@
 
                     <!-- ================= Currency (Header + Item) ================= -->
                     <table:Column
+                        id="colCurrency"
                         label="Currency"
                         width="80px"
                     >
@@ -498,6 +529,7 @@
 
                     <!-- ================= Company Code (Header) ================= -->
                     <table:Column
+                        id="colCompanyCode"
                         label="Company Code"
                         width="120px"
                     >
@@ -511,6 +543,7 @@
 
                     <!-- ================= Created By (Header) ================= -->
                     <table:Column
+                        id="colCreatedBy"
                         label="Created By"
                         width="120px"
                     >
@@ -524,6 +557,7 @@
 
                     <!-- ================= Creation Time (Header) ================= -->
                     <table:Column
+                        id="colCreationTime"
                         label="Creation Time"
                         width="140px"
                     >
@@ -537,6 +571,7 @@
 
                     <!-- ================= Item Count (Header) ================= -->
                     <table:Column
+                        id="colItemCount"
                         label="Item Count"
                         width="100px"
                     >
@@ -550,6 +585,7 @@
 
                     <!-- ================= Tax Number (Item) ================= -->
                     <table:Column
+                        id="colTaxNumber"
                         label="Tax Number"
                         width="120px"
                     >
@@ -563,6 +599,7 @@
 
                     <!-- ================= Bank Key (Item) ================= -->
                     <table:Column
+                        id="colBankKey"
                         label="Bank Key"
                         width="100px"
                     >
@@ -576,6 +613,7 @@
 
                     <!-- ================= Reference Document (Item) ================= -->
                     <table:Column
+                        id="colReferenceDocument"
                         label="Reference Document"
                         width="150px"
                     >
@@ -589,6 +627,7 @@
 
                     <!-- ================= GSTR1 Details (Item) ================= -->
                     <table:Column
+                        id="colGstr1Details"
                         label="GSTR1 Details"
                         width="150px"
                     >
@@ -602,6 +641,7 @@
 
                     <!-- ================= General Remark (Item) ================= -->
                     <table:Column
+                        id="colGeneralRemark"
                         label="General Remark"
                         width="200px"
                     >
@@ -615,6 +655,7 @@
 
                     <!-- ================= Account Holder (Item) ================= -->
                     <table:Column
+                        id="colAccountHolder"
                         label="Account Holder"
                         width="180px"
                     >
@@ -628,6 +669,7 @@
 
                     <!-- ================= Branch (Item) ================= -->
                     <table:Column
+                        id="colBranch"
                         label="Branch"
                         width="150px"
                     >

@@ -367,14 +367,14 @@ sap.ui.define([
                 });
 
                 if (aItemsWithoutRemarks.length > 0) {
-                    console.log("❌ REJECTION BLOCKED - Missing remarks for " + aItemsWithoutRemarks.length + " items");
+                    console.log(" REJECTION BLOCKED - Missing remarks for " + aItemsWithoutRemarks.length + " items");
                     MessageToast.show("Please enter remarks for all items before rejecting. " +
                         aItemsWithoutRemarks.length + " item(s) missing remarks.");
                     this._oApprovalDialog.close();
                     return;
                 }
 
-                console.log("✅ All items have remarks for rejection");
+                console.log(" All items have remarks for rejection");
             }
 
             // Close dialog
@@ -508,7 +508,7 @@ sap.ui.define([
             console.log("Payload items array:", aPayloadItems);
 
             if (aPayloadItems.length === 0) {
-                console.error("❌ NO PAYLOAD ITEMS CREATED!");
+                console.error(" NO PAYLOAD ITEMS CREATED!");
                 MessageToast.show("No items to process");
                 return;
             }
@@ -667,7 +667,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
         }
     };
 
-    console.log("🚀 FINAL DEEP CREATE PAYLOAD (MATCHED)");
+    console.log(" FINAL DEEP CREATE PAYLOAD (MATCHED)");
     console.log(JSON.stringify(oDeepPayload, null, 2));
 
     sap.ui.core.BusyIndicator.show(0);
@@ -679,7 +679,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
         },
         error: function (oError) {
             sap.ui.core.BusyIndicator.hide();
-            console.error("❌ Deep create failed", oError);
+            console.error(" Deep create failed", oError);
             sap.m.MessageBox.error("Backend update failed");
         }
     });
@@ -708,7 +708,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
             console.log("  Current User:", sCurrentUser);
 
             if (!sApprovalNo || !sVendorCode) {
-                console.warn("❌ Missing required key fields for payload item:", {
+                console.warn(" Missing required key fields for payload item:", {
                     ApprovalNo: sApprovalNo,
                     VendorCode: sVendorCode,
                     Item: oItem
@@ -1030,7 +1030,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
             var oModel = this.getView().getModel("oModel");
 
             if (!oModel) {
-                console.error("❌ OData model 'oModel' not available!");
+                console.error(" OData model 'oModel' not available!");
                 MessageToast.show("OData model not available");
                 return;
             }
@@ -1079,7 +1079,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
                     VendorCode: item.VendorCode,
                     ItemNum: item.ItemNum,
 
-                    // 🔴 DATE FIX (IMPORTANT)
+                    //  DATE FIX (IMPORTANT)
                     DocDate: item.DocDate ? this._toABAPDate(item.DocDate) : null,
                     PostingDt: item.PostingDt ? this._toABAPDate(item.PostingDt) : null,
                     PmApprOn: this._toABAPDateTime(new Date()),
@@ -1092,7 +1092,7 @@ _sendDeepApprovalPayload: function (aPayloadItems, sActionType) {
             }.bind(this))
         }
     };
-    console.log("🚀 SENDING DEEP CREATE PAYLOAD:", oPayload);
+    console.log(" SENDING DEEP CREATE PAYLOAD:", oPayload);
 
     oModel.create("/PaymentHeaderSet", oPayload, {
         success: function () {
@@ -1239,12 +1239,12 @@ _toABAPDateTime: function (jsDate) {
                     sap.ui.core.BusyIndicator.hide();
 
                     if (aErrors.length === 0) {
-                        console.log("✅ All " + iTotalCount + " items processed successfully");
+                        console.log(" All " + iTotalCount + " items processed successfully");
                         MessageToast.show(iTotalCount + " items " +
                             (sActionType === "APPROVE" ? "approved" : "rejected") +
                             " and sent to ZPAYMENT_APPROVAL_SRV");
                     } else {
-                        console.log("⚠️ Processed " + iProcessedCount + " items successfully, " + aErrors.length + " failed");
+                        console.log(" Processed " + iProcessedCount + " items successfully, " + aErrors.length + " failed");
                         MessageToast.show("Processed " + iProcessedCount + " items successfully. " +
                             aErrors.length + " items failed.");
                     }
@@ -2139,12 +2139,12 @@ _toABAPDateTime: function (jsDate) {
 
             oModel.update(sPath, oCleanUpdateData, {
                 success: function (oData) {
-                    console.log("✓ SUCCESS with discovered path " + (iPathIndex + 1) + " for item " + iItemNumber);
+                    console.log(" SUCCESS with discovered path " + (iPathIndex + 1) + " for item " + iItemNumber);
                     console.log("Successful path:", sPath);
                     fnCallback(true);
                 },
                 error: function (oError) {
-                    console.log("✗ FAILED with discovered path " + (iPathIndex + 1) + " for item " + iItemNumber + ":", oError.message);
+                    console.log(" FAILED with discovered path " + (iPathIndex + 1) + " for item " + iItemNumber + ":", oError.message);
 
                     // Try next path
                     this._tryDiscoveredPaths(oModel, aDiscoveredPaths, oUpdateData, iItemNumber, iPathIndex + 1, fnCallback);
